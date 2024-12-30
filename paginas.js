@@ -64,14 +64,36 @@ function pagination(totalPosts) {
     }
 }
 
-// Función para generar un enlace de página con clase activa
-function createPageLink(pageNum, linkText, type) {
-    let isActive = (pageNum === postnumber) ? " active" : ""; // Verifica si la página es la activa
-    if (type === "page") {
-        return `<span class="pagenumber${isActive}"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
-    } else {
-        return `<span class="pagenumber${isActive}"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
+// Función para redirigir a la página seleccionada y actualizar la clase 'current'
+function updatePagination(pageNum) {
+    // Primero, eliminamos la clase 'current' de todas las páginas
+    let allPages = document.querySelectorAll('.pagenumber');
+    allPages.forEach(page => {
+        page.classList.remove('current');
+    });
+
+    // Ahora, añadimos la clase 'current' a la página seleccionada
+    let selectedPage = document.querySelector(`.pagenumber a[href='#${pageNum}']`);
+    if (selectedPage) {
+        selectedPage.classList.add('current');
     }
+
+    // Redirigir a la página correspondiente
+    redirectpage(pageNum);
+}
+
+// Función para generar un enlace de página
+function createPageLink(pageNum, linkText, type) {
+    let pageLink = "";
+    
+    // Usamos un enlace con un identificador único
+    if (type === "page") {
+        pageLink = `<span class="pagenumber"><a href="#${pageNum}" onclick="updatePagination(${pageNum}); return false;">${linkText}</a></span>`;
+    } else {
+        pageLink = `<span class="pagenumber"><a href="#${pageNum}" onclick="updatePagination(${pageNum}); return false;">${linkText}</a></span>`;
+    }
+
+    return pageLink;
 }
 
 
