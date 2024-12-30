@@ -64,14 +64,16 @@ function pagination(totalPosts) {
     }
 }
 
-// Función para generar un enlace de página
+// Función para generar un enlace de página con clase activa
 function createPageLink(pageNum, linkText, type) {
+    let isActive = (pageNum === postnumber) ? " active" : ""; // Verifica si la página es la activa
     if (type === "page") {
-        return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
+        return `<span class="pagenumber${isActive}"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
     } else {
-        return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
+        return `<span class="pagenumber${isActive}"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
     }
 }
+
 
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
