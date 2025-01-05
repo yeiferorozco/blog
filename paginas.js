@@ -36,11 +36,13 @@ function pagination(totalPosts) {
     if (start > 2) paginationHTML += "...";
 
     // Generar las páginas intermedias
-    for (let r = start; r <= end; r++) {
-        paginationHTML += currentPage === r
-            ? `<span class="current">${r}</span>`
-            : createPageLink(r, r, type);
+for (let r = start; r <= end; r++) {
+    if (r === parseInt(currentPage, 10)) {
+        paginationHTML += `<span class="pagenumber current">${r}</span>`;
+    } else {
+        paginationHTML += createPageLink(r, r, type);
     }
+}
 
     if (end < maximum - 1) paginationHTML += "...";
 
@@ -92,8 +94,8 @@ function bloggerpage() {
     if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
-            ? activePage.substring(activePage.indexOf("#PageNo=") + 8) 
-            : 1;
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
@@ -102,8 +104,8 @@ function bloggerpage() {
             itemsPerPage = 20;
         }
         currentPage = activePage.includes("#PageNo=") 
-            ? activePage.substring(activePage.indexOf("#PageNo=") + 8) 
-            : 1;
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
