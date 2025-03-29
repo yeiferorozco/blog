@@ -101,7 +101,7 @@ function bloggerpage() {
     } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
-            itemsPerPage = 20;
+            itemsPerPage = 9;
         }
         currentPage = activePage.includes("#PageNo=") 
     ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
