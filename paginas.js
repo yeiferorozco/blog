@@ -36,13 +36,13 @@ function pagination(totalPosts) {
     if (start > 2) paginationHTML += "...";
 
     // Generar las páginas intermedias
-for (let r = start; r <= end; r++) {
-    if (r === parseInt(currentPage, 10)) {
-        paginationHTML += `<span class="pagenumber current">${r}</span>`;
-    } else {
-        paginationHTML += createPageLink(r, r, type);
+    for (let r = start; r <= end; r++) {
+        if (r === parseInt(currentPage, 10)) {
+            paginationHTML += `<span class="pagenumber current">${r}</span>`;
+        } else {
+            paginationHTML += createPageLink(r, r, type);
+        }
     }
-}
 
     if (end < maximum - 1) paginationHTML += "...";
 
@@ -84,18 +84,28 @@ function paginationall(data) {
 // Función para determinar el tipo de página y cargar la información
 function bloggerpage() {
     let activePage = urlactivepage;
-    
+
     if (activePage.indexOf("/search/label/") !== -1) {
         lblname1 = activePage.includes("?updated-max") 
             ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    if (activePage.includes("?q=")) {
+        type = "search";
+        itemsPerPage = 9; // Establecer 9 entradas por página solo para búsquedas
+
+        currentPage = activePage.includes("#PageNo=") 
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
+
+        let searchQuery = activePage.split("?q=")[1].split("&")[0];
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+    } else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
@@ -104,8 +114,8 @@ function bloggerpage() {
             itemsPerPage = 9;
         }
         currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
@@ -113,13 +123,11 @@ function bloggerpage() {
 
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
-    // Si la página es 1, redirige directamente a la página de inicio
     if (pageNum === 1) {
-        location.href = home_page; // Redirige a la página de inicio
+        location.href = home_page;
         return;
     }
 
-    // Para otras páginas, calcula el inicio y redirige
     jsonstart = (pageNum - 1) * itemsPerPage;
     nopage = pageNum;
 
