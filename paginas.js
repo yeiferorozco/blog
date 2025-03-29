@@ -20,7 +20,7 @@ function pagination(totalPosts) {
     let end = start + pagesToShow - 1;
     end = Math.min(end, maximum); // Garantiza que el final no sea mayor que el máximo
 
-    paginationHTML += <span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>;
+    paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
 
     // Enlace a la página anterior
     let previousPage = currentPage > 1 ? createPageLink(currentPage - 1, prevpage, type) : "";
@@ -29,8 +29,8 @@ function pagination(totalPosts) {
     // Enlace a la página 1
     if (start > 1) {
         paginationHTML += type === "page"
-            ? <span class="pagenumber"><a href="${home_page}">1</a></span>
-            : <span class="pagenumber"><a href="/search/label/${lblname1}?&max-results=${itemsPerPage}">1</a></span>;
+            ? `<span class="pagenumber"><a href="${home_page}">1</a></span>`
+            : `<span class="pagenumber"><a href="/search/label/${lblname1}?&max-results=${itemsPerPage}">1</a></span>`;
     }
 
     if (start > 2) paginationHTML += "...";
@@ -38,7 +38,7 @@ function pagination(totalPosts) {
     // Generar las páginas intermedias
 for (let r = start; r <= end; r++) {
     if (r === parseInt(currentPage, 10)) {
-        paginationHTML += <span class="pagenumber current">${r}</span>;
+        paginationHTML += `<span class="pagenumber current">${r}</span>`;
     } else {
         paginationHTML += createPageLink(r, r, type);
     }
@@ -69,9 +69,9 @@ for (let r = start; r <= end; r++) {
 // Función para generar un enlace de página
 function createPageLink(pageNum, linkText, type) {
     if (type === "page") {
-        return <span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>;
+        return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
     } else {
-        return <span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>;
+        return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
     }
 }
 
@@ -97,7 +97,7 @@ function bloggerpage() {
     ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
     : 1;
 
-        document.write(<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>);
+        document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
@@ -107,7 +107,7 @@ function bloggerpage() {
     ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
     : 1;
 
-        document.write(<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>);
+        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
 }
 
@@ -125,7 +125,7 @@ function redirectpage(pageNum) {
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = ${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost;
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
@@ -137,7 +137,7 @@ function redirectlabel(pageNum) {
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = ${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost;
+    script.src = `${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
@@ -149,8 +149,8 @@ function finddatepost(data) {
     let encodedDate = encodeURIComponent(dateStr);
 
     let redirectUrl = type === "page"
-        ? /search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}
-        : /search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage};
+        ? `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
 
     location.href = redirectUrl;
 }
