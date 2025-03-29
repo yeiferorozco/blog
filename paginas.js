@@ -157,4 +157,4 @@ function finddatepost(data) {
 
 // Inicialización de la página
 var nopage, type, currentPage, lblname1;
-bloggerpage();"
+bloggerpage();
