@@ -91,11 +91,25 @@ function bloggerpage() {
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    if (activePage.includes("?q=")) {
+        type = "search";
+        let queryStart = activePage.indexOf("?q=") + 3;
+        let queryEnd = activePage.includes("&") ? activePage.indexOf("&") : activePage.length;
+        searchQuery = activePage.substring(queryStart, queryEnd);
+
+        // Extraer el número de página actual
+        currentPage = activePage.includes("#PageNo=") 
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
+
+        // Llamar al script de paginación para búsquedas
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+
+    } else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
@@ -104,8 +118,8 @@ function bloggerpage() {
             itemsPerPage = 12;
         }
         currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
