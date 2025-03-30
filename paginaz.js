@@ -127,19 +127,22 @@ function bloggerpage() {
 
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
-    // Si la página es 1, redirige directamente a la página de inicio
     if (pageNum === 1) {
-        location.href = home_page; // Redirige a la página de inicio
+        location.href = home_page;
         return;
     }
 
-    // Para otras páginas, calcula el inicio y redirige
     jsonstart = (pageNum - 1) * itemsPerPage;
     nopage = pageNum;
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+
+    if (type === "search") {
+        script.src = `${home_page}feeds/posts/summary?q=${searchQuery}&start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+    } else {
+        script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+    }
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
@@ -162,9 +165,14 @@ function finddatepost(data) {
     let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
     let encodedDate = encodeURIComponent(dateStr);
 
-    let redirectUrl = type === "page"
-        ? `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
-        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    let redirectUrl;
+    if (type === "search") {
+        redirectUrl = `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    } else if (type === "label") {
+        redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    } else {
+        redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    }
 
     location.href = redirectUrl;
 }
