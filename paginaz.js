@@ -70,9 +70,12 @@ for (let r = start; r <= end; r++) {
 function createPageLink(pageNum, linkText, type) {
     if (type === "page") {
         return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
-    } else {
-        return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
-    }
+    } else if (type === "label") {
+    return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
+}
+else if (type === "search") {
+    return `<span class="pagenumber"><a href="#" onclick="redirectsearch(${pageNum}); return false;">${linkText}</a></span>`;
+}
 }
 
 // Función para manejar la paginación de todas las entradas
@@ -146,6 +149,19 @@ function redirectpage(pageNum) {
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
+
+function redirectsearch(pageNum) {
+    jsonstart = (pageNum - 1) * itemsPerPage;
+    nopage = pageNum;
+
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = `${home_page}feeds/posts/summary?q=${encodeURIComponent(getQueryParameter("q"))}&start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+
+    document.getElementsByTagName("head")[0].appendChild(script);
+}
+
+
 
 // Función para redirigir a una etiqueta
 function redirectlabel(pageNum) {
