@@ -169,3 +169,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+// Etiquetas BQ página
+document.addEventListener("DOMContentLoaded", function () {
+    let searchLinks = document.querySelectorAll('a[href*="/search?q="]');
+
+    searchLinks.forEach(function (link) {
+        let href = link.href;
+
+        // Si la URL ya contiene "&updated-max=", no hacer nada
+        if (href.includes("&updated-max=")) {
+            return;
+        }
+
+        // Si la URL no tiene "&max-results=", añadirlo
+        if (!href.includes("&max-results=")) {
+            link.href += "&max-results=12";
+        }
+    });
+});
