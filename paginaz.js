@@ -84,6 +84,12 @@ function paginationall(data) {
     pagination(totalResults);
 }
 
+// Función para manejar la paginación en búsqueda
+function paginationSearch(data) {
+    let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+    pagination(totalResults);
+}
+
 // Función para determinar el tipo de página y cargar la información
 function bloggerpage() {
     let activePage = urlactivepage;
