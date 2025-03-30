@@ -70,8 +70,8 @@ for (let r = start; r <= end; r++) {
 function createPageLink(pageNum, linkText, type) {
     if (type === "page") {
         return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
-    } else if (type === "search") { // 💡 Nueva condición para búsquedas
-        return `<span class="pagenumber"><a href="#" onclick="redirectsearch(${pageNum}); return false;">${linkText}</a></span>`;
+    } else if (type === "search") {
+        return `<span class="pagenumber"><a href="#" onclick="redirectSearch(${pageNum}); return false;">${linkText}</a></span>`;
     } else {
         return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
     }
@@ -86,51 +86,68 @@ function paginationall(data) {
 // Función para determinar el tipo de página y cargar la información
 function bloggerpage() {
     let activePage = urlactivepage;
-
+    
     if (activePage.indexOf("/search/label/") !== -1) {
         lblname1 = activePage.includes("?updated-max") 
             ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (activePage.includes("?q=")) { // 💡 Nueva detección para búsquedas
+    if (activePage.includes("?q=")) {
         type = "search";
-        let searchQuery = activePage.split("?q=")[1].split("&")[0]; // Extraer la consulta de búsqueda
         currentPage = activePage.includes("#PageNo=") 
             ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
             : 1;
 
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}"></script>`);
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${getSearchQuery()}&max-results=1&alt=json-in-script&callback=paginationSearch"></script>`);
     } 
-    else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    else if (!activePage.includes(".html") && !activePage.includes("/search/label/")) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
             ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
             : 1;
 
-        document.write(`<script src="${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=paginationall"></script>`);
+        document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
             itemsPerPage = 12;
         }
         currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
-        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}"></script>`);
+        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
 }
 
+// Obtener la consulta de búsqueda
+function getSearchQuery() {
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("q") ? encodeURIComponent(urlParams.get("q")) : "";
+}
+
+// Función para manejar la paginación de búsquedas
+function paginationSearch(data) {
+    let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+    pagination(totalResults);
+}
+
 // Función para redirigir a la página seleccionada
-function redirectsearch(pageNum) {
-    let searchQuery = urlactivepage.split("?q=")[1].split("&")[0]; // Obtener la consulta de búsqueda
+function redirectpage(pageNum) {
+    // Si la página es 1, redirige directamente a la página de inicio
+    if (pageNum === 1) {
+        location.href = home_page; // Redirige a la página de inicio
+        return;
+    }
+
+    // Para otras páginas, calcula el inicio y redirige
     jsonstart = (pageNum - 1) * itemsPerPage;
     nopage = pageNum;
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?q=${searchQuery}&start-index=${jsonstart}&max-results=${itemsPerPage}&alt=json-in-script&callback=finddatepost`;
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
@@ -142,7 +159,7 @@ function redirectlabel(pageNum) {
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=${itemsPerPage}&alt=json-in-script&callback=finddatepost`;
+    script.src = `${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
@@ -153,16 +170,9 @@ function finddatepost(data) {
     let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
     let encodedDate = encodeURIComponent(dateStr);
 
-    let redirectUrl;
-
-    if (type === "page") {
-        redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else if (type === "search") { // 💡 Nueva condición para búsquedas
-        let searchQuery = urlactivepage.split("?q=")[1].split("&")[0];
-        redirectUrl = `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else {
-        redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    }
+    let redirectUrl = type === "page"
+        ? `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
 
     location.href = redirectUrl;
 }
