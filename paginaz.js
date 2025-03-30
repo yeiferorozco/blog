@@ -133,22 +133,26 @@ else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") =
 
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
-    // Si la página es 1, redirige directamente a la página de inicio
     if (pageNum === 1) {
-        location.href = home_page; // Redirige a la página de inicio
+        location.href = home_page + "?max-results=12";
         return;
     }
 
-    // Para otras páginas, calcula el inicio y redirige
     jsonstart = (pageNum - 1) * itemsPerPage;
-    nopage = pageNum;
-
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
-
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=12&alt=json-in-script&callback=finddatepost`;
     document.getElementsByTagName("head")[0].appendChild(script);
 }
+
+function redirectlabel(pageNum) {
+    jsonstart = (pageNum - 1) * itemsPerPage;
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = `${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=12&alt=json-in-script&callback=finddatepost`;
+    document.getElementsByTagName("head")[0].appendChild(script);
+}
+
 
 function redirectsearch(pageNum) {
     jsonstart = (pageNum - 1) * itemsPerPage;
