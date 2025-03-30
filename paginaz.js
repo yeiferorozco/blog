@@ -40,10 +40,19 @@ function pagination(totalPosts) {
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación
+// Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
-    let url = type === "page" ? `#PageNo=${pageNum}` : `/search/label/${lblname1}?&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    let updatedMax = getUpdatedMax();
+    let url = type === "page" 
+        ? `/search?q=libros&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
+        : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
+}
+
+// Obtiene la fecha del último post en formato correcto
+function getUpdatedMax() {
+    let date = new Date();
+    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
 // Procesa los datos de Blogger
@@ -72,15 +81,16 @@ function bloggerpage() {
     document.body.appendChild(script);
 }
 
-// Redirigir a una página específica
+// Redirigir a una página específica con fecha actualizada
 function redirectpage(pageNum) {
-    if (pageNum === 1) location.href = home_page;
-    else location.href = `/search?updated-max=&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    let updatedMax = getUpdatedMax();
+    location.href = `/search?q=libros&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
-// Redirigir a una etiqueta específica
+// Redirigir a una etiqueta específica con fecha actualizada
 function redirectlabel(pageNum) {
-    location.href = `/search/label/${lblname1}?updated-max=&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    let updatedMax = getUpdatedMax();
+    location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Inicialización
