@@ -78,6 +78,12 @@ function createPageLink(pageNum, linkText, type) {
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+
+    // Si es una búsqueda, debemos calcular el total correctamente
+    if (type === "search") {
+        totalResults = Math.ceil(totalResults / itemsPerPage) * itemsPerPage;
+    }
+
     pagination(totalResults);
 }
 
