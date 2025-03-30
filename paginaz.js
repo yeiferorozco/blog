@@ -90,52 +90,22 @@ function bloggerpage() {
             ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
-function bloggerpage() {
-    let activePage = urlactivepage;
-    let currentPage = 1;
-    let lblname1 = "";
-    let type = "";
 
-    // Extraer el número de página si existe
-    function getPageNumber(url) {
-        return url.includes("#PageNo=") 
-            ? parseInt(url.substring(url.indexOf("#PageNo=") + 8), 10) 
-            : 1;
-    }
-
-    // Detectar etiquetas (labels)
-    if (activePage.includes("/search/label/")) {
-        let start = activePage.indexOf("/search/label/") + 14;
-        let end = activePage.indexOf("?updated-max") !== -1 
-            ? activePage.indexOf("?updated-max") 
-            : activePage.indexOf("?&max");
-
-        lblname1 = end !== -1 ? activePage.substring(start, end) : activePage.substring(start);
-    }
-
-    // Detectar búsquedas (?q=)
-    if (activePage.includes("?q=")) {
-        type = "search";
-        let queryStart = activePage.indexOf("?q=") + 3;
-        let queryEnd = activePage.includes("&") ? activePage.indexOf("&") : activePage.length;
-        let searchQuery = decodeURIComponent(activePage.substring(queryStart, queryEnd)); // Decodificar caracteres especiales
-
-        currentPage = getPageNumber(activePage);
-
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
-
-    } else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
-        currentPage = getPageNumber(activePage);
+        currentPage = activePage.includes("#PageNo=") 
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
-
     } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
             itemsPerPage = 12;
         }
-        currentPage = getPageNumber(activePage);
+        currentPage = activePage.includes("#PageNo=") 
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
@@ -179,18 +149,10 @@ function finddatepost(data) {
     let encodedDate = encodeURIComponent(dateStr);
 
     let redirectUrl = type === "page"
-let redirectUrl;
+        ? `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
 
-if (type === "page") {
-    redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-} else if (type === "label") {
-    redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-} else if (type === "search") {
-    redirectUrl = `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-}
-
-location.href = redirectUrl;
-
+    location.href = redirectUrl;
 }
 
 // Inicialización de la página
