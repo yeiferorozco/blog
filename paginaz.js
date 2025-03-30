@@ -75,6 +75,14 @@ function createPageLink(pageNum, linkText, type) {
     }
 }
 
+function createPageLink(pageNum, linkText, type) {
+    if (type === "search") {
+        return `<span class="pagenumber"><a href="#" onclick="redirectsearch(${pageNum}); return false;">${linkText}</a></span>`;
+    } else {
+        return ...;
+    }
+}
+
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
@@ -91,25 +99,15 @@ function bloggerpage() {
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (activePage.includes("?q=")) {
-        type = "search";
-        let queryStart = activePage.indexOf("?q=") + 3;
-        let queryEnd = activePage.includes("&") ? activePage.indexOf("&") : activePage.length;
-        searchQuery = activePage.substring(queryStart, queryEnd);
-
-        // Extraer el número de página actual
-        currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
-
-        // Llamar al script de paginación para búsquedas
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
-
-    } else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+if (activePage.includes("search?q=")) {
+    type = "search";
+    let searchQuery = activePage.substring(activePage.indexOf("?q=") + 3, activePage.indexOf("&") !== -1 ? activePage.indexOf("&") : activePage.length);
+}   
+    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
@@ -118,8 +116,8 @@ function bloggerpage() {
             itemsPerPage = 12;
         }
         currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
@@ -127,22 +125,19 @@ function bloggerpage() {
 
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
+    // Si la página es 1, redirige directamente a la página de inicio
     if (pageNum === 1) {
-        location.href = home_page;
+        location.href = home_page; // Redirige a la página de inicio
         return;
     }
 
+    // Para otras páginas, calcula el inicio y redirige
     jsonstart = (pageNum - 1) * itemsPerPage;
     nopage = pageNum;
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-
-    if (type === "search") {
-        script.src = `${home_page}feeds/posts/summary?q=${searchQuery}&start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
-    } else {
-        script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
-    }
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
@@ -159,20 +154,27 @@ function redirectlabel(pageNum) {
     document.getElementsByTagName("head")[0].appendChild(script);
 }
 
+function redirectsearch(pageNum) {
+    jsonstart = (pageNum - 1) * itemsPerPage;
+    nopage = pageNum;
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+    document.getElementsByTagName("head")[0].appendChild(script);
+}
+
 // Función para manejar la redirección con fecha
 function finddatepost(data) {
     let post = data.feed.entry[0];
     let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
     let encodedDate = encodeURIComponent(dateStr);
-
-    let redirectUrl;
-    if (type === "search") {
-        redirectUrl = `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else if (type === "label") {
-        redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else {
-        redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    }
+    let redirectUrl = type === "search"
+    ? `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+    : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    
+    let redirectUrl = type === "page"
+        ? `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
 
     location.href = redirectUrl;
 }
@@ -180,14 +182,3 @@ function finddatepost(data) {
 // Inicialización de la página
 var nopage, type, currentPage, lblname1;
 bloggerpage();
-
-// Etiquetas LB página
-document.addEventListener("DOMContentLoaded", function () {
-    let labelLinks = document.querySelectorAll('a[href*="/search/label/"]');
-
-    labelLinks.forEach(function (link) {
-        if (!link.href.includes("?&max-results=")) {
-            link.href += "?&max-results=12";
-        }
-    });
-});
