@@ -140,7 +140,7 @@ function redirectSearch(pageNum) {
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?q=${getSearchQuery()}&start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+    script.src = `${home_page}feeds/posts/summary?q=${getSearchQuery()}&start-index=${jsonstart}&max-results=12&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
