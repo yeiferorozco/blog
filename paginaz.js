@@ -1,114 +1,112 @@
-(function(globalScope, factory) {
-    if (typeof exports === "object" && typeof module !== "undefined") {
-        module.exports = factory();
-    } else if (typeof define === "function" && define.amd) {
-        define(factory);
+// Función principal de paginación
+function pagination(totalPosts) {
+    let paginationHTML = "";
+    let leftnum = Math.floor(pagesToShow / 2);
+
+    if (leftnum === pagesToShow - leftnum) {
+        pagesToShow = 2 * leftnum + 1;
+    }
+
+    let start = currentPage - leftnum;
+    start = Math.max(start, 1);
+
+    let maximum = Math.floor(totalPosts / itemsPerPage) + 1;
+    if (maximum * itemsPerPage === totalPosts) {
+        maximum -= 1;
+    }
+
+    let end = start + pagesToShow - 1;
+    end = Math.min(end, maximum);
+
+    paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
+
+    let previousPage = currentPage > 1 ? createPageLink(currentPage - 1, prevpage, type) : "";
+    paginationHTML += previousPage;
+
+    if (start > 1) {
+        paginationHTML += type === "page"
+            ? `<span class="pagenumber"><a href="${home_page}">1</a></span>`
+            : `<span class="pagenumber"><a href="/search/label/${lblname1}?&max-results=${itemsPerPage}">1</a></span>`;
+    }
+
+    if (start > 2) paginationHTML += "...";
+
+    for (let r = start; r <= end; r++) {
+        if (r === parseInt(currentPage, 10)) {
+            paginationHTML += `<span class="pagenumber current">${r}</span>`;
+        } else {
+            paginationHTML += createPageLink(r, r, type);
+        }
+    }
+
+    if (end < maximum - 1) paginationHTML += "...";
+
+    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
+
+    let nextPage = currentPage < maximum ? createPageLink(currentPage + 1, nextpage, type) : "";
+    paginationHTML += nextPage;
+
+    let pageArea = document.getElementsByName("pageArea");
+    let pagerElement = document.getElementById("blog-pager");
+
+    for (let i = 0; i < pageArea.length; i++) {
+        pageArea[i].innerHTML = paginationHTML;
+    }
+
+    if (pagerElement) {
+        pagerElement.innerHTML = paginationHTML;
+    }
+}
+
+// Función para generar enlaces con búsqueda personalizada
+function createSearchPageLink(pageNum) {
+    let updatedMax = encodeURIComponent(findUpdatedMax(pageNum));
+    return `<span class="pagenumber"><a href="/search?q=${searchQuery}&updated-max=${updatedMax}&max-results=${itemsPerPage}&start=${(pageNum - 1) * itemsPerPage}&by-date=false">${pageNum}</a></span>`;
+}
+
+// Función para encontrar la fecha de actualización máxima
+function findUpdatedMax(pageNum) {
+    let jsonstart = (pageNum - 1) * itemsPerPage;
+    return jsonstart > 0 ? new Date().toISOString() : "";
+}
+
+// Función para redirigir a la búsqueda con paginación
+function redirectSearch(pageNum) {
+    let updatedMax = encodeURIComponent(findUpdatedMax(pageNum));
+    location.href = `/search?q=${searchQuery}&updated-max=${updatedMax}&max-results=${itemsPerPage}&start=${(pageNum - 1) * itemsPerPage}&by-date=false`;
+}
+
+// Ajuste en la función bloggerpage para manejar búsquedas
+function bloggerpage() {
+    let activePage = urlactivepage;
+
+    if (activePage.includes("?q=")) {
+        type = "search";
+        let queryIndex = activePage.indexOf("?q=") + 3;
+        searchQuery = activePage.substring(queryIndex, activePage.indexOf("&") > 0 ? activePage.indexOf("&") : activePage.length);
+        itemsPerPage = activePage.includes("&max-results=") ? parseInt(activePage.split("&max-results=")[1]) : 9;
+        currentPage = activePage.includes("#PageNo=")
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10)
+            : 1;
+
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+    } else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+        type = "page";
+        currentPage = activePage.includes("#PageNo=")
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10)
+            : 1;
+
+        document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
-        (globalScope = typeof globalThis !== "undefined" ? globalThis : globalScope || self).CustomPager = factory();
+        type = "label";
+        itemsPerPage = activePage.includes("&max-results=") ? parseInt(activePage.split("&max-results=")[1]) : 20;
+        currentPage = activePage.includes("#PageNo=")
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10)
+            : 1;
+
+        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
-})(this, function() {
-    "use strict";
+}
 
-    const defaultSettings = {
-        pagerContainer: "#pagination",
-        pageNumbersContainer: "#page-numbers",
-        pageClass: "page-link",
-        ellipsisClass: "page-ellipsis",
-        currentPageClass: "active",
-        visiblePageCount: 6,
-        checkUpdates: true,
-        jumpDotsEnabled: true,
-        useDateSorting: false,
-        itemsPerPage: null,
-        searchQuery: null,
-        category: null,
-        startOffset: null,
-        latestUpdate: null
-    };
-
-    function generatePagination({settings, currentPage, totalPages}) {
-        const { visiblePageCount, currentPageClass } = settings;
-        const halfRange = Math.floor(visiblePageCount / 2);
-        let startPage = Math.max(currentPage - halfRange, 1);
-        let endPage = Math.min(startPage + visiblePageCount - 1, totalPages);
-        
-        if (totalPages <= visiblePageCount) {
-            startPage = 1;
-            endPage = totalPages;
-        } else if (currentPage <= halfRange) {
-            startPage = 1;
-            endPage = visiblePageCount;
-        } else if (currentPage >= totalPages - halfRange) {
-            startPage = totalPages - visiblePageCount + 1;
-            endPage = totalPages;
-        }
-        
-        let paginationData = Array.from({ length: endPage - startPage + 1 }, (_, index) => ({
-            number: startPage + index,
-            isCurrent: startPage + index === currentPage ? currentPageClass : ""
-        }));
-
-        return paginationData;
-    }
-
-    function extractParams(url) {
-        const urlParams = url.searchParams;
-        return {
-            itemsPerPage: Number(urlParams.get("max-results")),
-            searchQuery: urlParams.get("q"),
-            category: url.pathname.includes("/search/label/") ? url.pathname.split("/").pop() : null
-        };
-    }
-
-    function getCachedData(key) {
-        return JSON.parse(localStorage.getItem(key)) || {};
-    }
-
-    function setCachedData(key, data) {
-        localStorage.setItem(key, JSON.stringify(data));
-    }
-
-    function calculateTotalPages(totalItems, itemsPerPage) {
-        return Math.ceil(totalItems / itemsPerPage);
-    }
-
-    function constructPageLink({ settings, pageNumber }) {
-        const { baseURL, category, searchQuery, itemsPerPage, useDateSorting } = settings;
-        if (pageNumber === 1) {
-            return category ? `${baseURL}/search/label/${category}?max-results=${itemsPerPage}` : `${baseURL}/search?q=${searchQuery}&max-results=${itemsPerPage}&by-date=${useDateSorting}`;
-        }
-        return `${baseURL}/page/${pageNumber}?max-results=${itemsPerPage}`;
-    }
-
-    function renderPagination({ settings, paginationData }) {
-        const pageContainer = document.querySelector(settings.pageNumbersContainer);
-        if (!pageContainer) return;
-        
-        pageContainer.innerHTML = "";
-        paginationData.forEach(({ number, isCurrent }) => {
-            const pageElement = document.createElement("a");
-            pageElement.className = `${settings.pageClass} ${isCurrent}`.trim();
-            pageElement.textContent = number;
-            pageElement.href = constructPageLink({ settings, pageNumber: number });
-            pageContainer.appendChild(pageElement);
-        });
-    }
-
-    return class {
-        constructor(customSettings = {}) {
-            this.currentURL = new URL(window.location.href);
-            this.settings = { ...defaultSettings, ...customSettings, ...extractParams(this.currentURL), baseURL: this.currentURL.origin };
-            this.pagerElement = document.querySelector(this.settings.pagerContainer);
-        }
-
-        async initialize() {
-            if (!this.pagerElement) return;
-            const cachedData = getCachedData("paginationData");
-            const totalItems = cachedData.totalItems || 100; 
-            const totalPages = calculateTotalPages(totalItems, this.settings.itemsPerPage);
-            
-            const paginationData = generatePagination({ settings: this.settings, currentPage: 1, totalPages });
-            renderPagination({ settings: this.settings, paginationData });
-        }
-    };
-});
+var nopage, type, currentPage, lblname1, searchQuery;
+bloggerpage();
