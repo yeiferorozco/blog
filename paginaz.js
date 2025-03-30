@@ -147,15 +147,7 @@ function redirectpage(pageNum) {
     document.getElementsByTagName("head")[0].appendChild(script);
 }
 
-// Función para redirigir a una busqueda
-function redirectSearch(pageNum) {
-    let jsonstart = (pageNum - 1) * itemsPerPage;
-    let script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?q=${searchQuery}&start-index=${jsonstart}&max-results=10&alt=json-in-script&callback=finddatepost`;
 
-    document.getElementsByTagName("head")[0].appendChild(script);
-}
 
 // Función para redirigir a una etiqueta
 function redirectlabel(pageNum) {
