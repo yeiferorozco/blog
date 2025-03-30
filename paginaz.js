@@ -77,6 +77,7 @@ function createPageLink(pageNum, linkText, type) {
     }
 }
 
+
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
@@ -128,6 +129,18 @@ function redirectpage(pageNum) {
     let script = document.createElement("script");
     script.type = "text/javascript";
     script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+
+    document.getElementsByTagName("head")[0].appendChild(script);
+}
+
+// Función para redirigir a una página de búsqueda
+function redirectSearch(pageNum) {
+    jsonstart = (pageNum - 1) * itemsPerPage;
+    nopage = pageNum;
+
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = `${home_page}feeds/posts/summary?q=${getSearchQuery()}&start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
