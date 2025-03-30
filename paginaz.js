@@ -1,8 +1,8 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery;
+var nopage, type, currentPage, lblname1, searchQuery, lastPostDate;
 
 // Función principal de paginación
-function pagination(totalPosts) {
+function pagination(totalPosts, lastDate) {
     let paginationHTML = "";
     let leftnum = Math.floor(pagesToShow / 2);
     
@@ -13,6 +13,8 @@ function pagination(totalPosts) {
     let start = Math.max(currentPage - leftnum, 1);
     let maximum = Math.ceil(totalPosts / itemsPerPage);
     let end = Math.min(start + pagesToShow - 1, maximum);
+    
+    lastPostDate = lastDate;
     
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
     
@@ -40,25 +42,27 @@ function pagination(totalPosts) {
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con fecha actualizada
+// Genera enlaces de paginación con fecha del último post de la página actual
 function createPageLink(pageNum, linkText, type) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = lastPostDate || getUpdatedMax();
     let url = type === "page" 
         ? `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
         : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post en formato correcto
+// Obtiene la fecha del último post
 function getUpdatedMax() {
     let date = new Date();
     return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
-// Procesa los datos de Blogger
+// Procesa los datos de Blogger y obtiene la fecha del último post
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-    pagination(totalResults);
+    let entries = data.feed.entry;
+    let lastDate = entries && entries.length > 0 ? entries[0].published.$t : getUpdatedMax();
+    pagination(totalResults, encodeURIComponent(lastDate));
 }
 
 // Determina el tipo de página y carga información
@@ -86,13 +90,13 @@ function bloggerpage() {
 
 // Redirigir a una página específica con fecha actualizada
 function redirectpage(pageNum) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = lastPostDate || getUpdatedMax();
     location.href = `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Redirigir a una etiqueta específica con fecha actualizada
 function redirectlabel(pageNum) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = lastPostDate || getUpdatedMax();
     location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
