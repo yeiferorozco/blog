@@ -158,3 +158,14 @@ function finddatepost(data) {
 // Inicialización de la página
 var nopage, type, currentPage, lblname1;
 bloggerpage();
+
+// Etiquetas LB página
+document.addEventListener("DOMContentLoaded", function () {
+    let labelLinks = document.querySelectorAll('a[href*="/search/label/"]');
+
+    labelLinks.forEach(function (link) {
+        if (!link.href.includes("?&max-results=")) {
+            link.href += "?&max-results=12";
+        }
+    });
+});
