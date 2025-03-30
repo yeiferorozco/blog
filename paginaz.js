@@ -70,23 +70,14 @@ for (let r = start; r <= end; r++) {
 function createPageLink(pageNum, linkText, type) {
     if (type === "page") {
         return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
-    } else if (type === "label") {
-    return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
-}
-else if (type === "search") {
-    return `<span class="pagenumber"><a href="#" onclick="redirectsearch(${pageNum}); return false;">${linkText}</a></span>`;
-}
+    } else {
+        return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
+    }
 }
 
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-
-    // Si es una búsqueda, debemos calcular el total correctamente
-    if (type === "search") {
-        totalResults = Math.ceil(totalResults / itemsPerPage) * itemsPerPage;
-    }
-
     pagination(totalResults);
 }
 
@@ -100,18 +91,7 @@ function bloggerpage() {
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (activePage.includes("?q=")) {
-    type = "search";
-    if (!activePage.includes("&max-results=")) {
-        itemsPerPage = 12;
-    }
-    currentPage = activePage.includes("#PageNo=") 
-        ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-        : 1;
-
-    document.write(`<script src="${home_page}feeds/posts/summary?q=${encodeURIComponent(getQueryParameter("q"))}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
-}
-else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
     ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
@@ -133,39 +113,22 @@ else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") =
 
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
+    // Si la página es 1, redirige directamente a la página de inicio
     if (pageNum === 1) {
-        location.href = home_page + "?max-results=12";
+        location.href = home_page; // Redirige a la página de inicio
         return;
     }
 
-    jsonstart = (pageNum - 1) * itemsPerPage;
-    let script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=12&alt=json-in-script&callback=finddatepost`;
-    document.getElementsByTagName("head")[0].appendChild(script);
-}
-
-function redirectlabel(pageNum) {
-    jsonstart = (pageNum - 1) * itemsPerPage;
-    let script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=12&alt=json-in-script&callback=finddatepost`;
-    document.getElementsByTagName("head")[0].appendChild(script);
-}
-
-
-function redirectsearch(pageNum) {
+    // Para otras páginas, calcula el inicio y redirige
     jsonstart = (pageNum - 1) * itemsPerPage;
     nopage = pageNum;
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?q=${encodeURIComponent(getQueryParameter("q"))}&start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
-
-
 
 // Función para redirigir a una etiqueta
 function redirectlabel(pageNum) {
@@ -206,21 +169,3 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
-
-// máximo 12 entradas por página
-document.addEventListener("DOMContentLoaded", function () {
-    let labelLinks = document.querySelectorAll('a[href*="/search/label/"]');
-    labelLinks.forEach(function (link) {
-        if (!link.href.includes("?&max-results=")) {
-            link.href += "?&max-results=12";
-        }
-    });
-
-    let searchLinks = document.querySelectorAll('a[href*="/search?q="]');
-    searchLinks.forEach(function (link) {
-        if (!link.href.includes("&max-results=")) {
-            link.href += "&max-results=12";
-        }
-    });
-});
-
