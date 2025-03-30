@@ -114,6 +114,12 @@ function bloggerpage() {
     }
 }
 
+// Obtener la consulta de búsqueda
+function getSearchQuery() {
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("q") ? encodeURIComponent(urlParams.get("q")) : "";
+}
+
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
     // Si la página es 1, redirige directamente a la página de inicio
