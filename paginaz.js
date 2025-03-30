@@ -101,13 +101,61 @@ function bloggerpage() {
     } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
-            itemsPerPage = 20;
+            itemsPerPage = 12;
         }
         currentPage = activePage.includes("#PageNo=") 
     ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
     : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+    }
+}
+
+function bloggerpage() {
+    let activePage = urlactivepage;
+
+    // Detectar si es una búsqueda
+    if (activePage.includes("?q=")) {
+        type = "search";
+        currentPage = activePage.includes("#PageNo=") 
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
+
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${encodeURIComponent(new URLSearchParams(window.location.search).get("q"))}&max-results=1&alt=json-in-script&callback=paginationall"></script>`);
+    }
+
+    // Si no es una búsqueda, verifica si es una etiqueta o una página
+    else if (activePage.indexOf("/search/label/") !== -1) {
+        lblname1 = activePage.includes("?updated-max") 
+            ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
+            : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
+        
+        type = "label";
+        currentPage = activePage.includes("#PageNo=") 
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
+
+        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+    }
+
+    // Si no es búsqueda ni etiqueta, es una página normal
+    else {
+        type = "page";
+        currentPage = activePage.includes("#PageNo=") 
+            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+            : 1;
+
+        document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
+    }
+}
+
+function createPageLink(pageNum, linkText, type) {
+    if (type === "page") {
+        return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
+    } else if (type === "label") {
+        return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
+    } else if (type === "search") {
+        return `<span class="pagenumber"><a href="#" onclick="redirectsearch(${pageNum}); return false;">${linkText}</a></span>`;
     }
 }
 
@@ -158,33 +206,3 @@ function finddatepost(data) {
 // Inicialización de la página
 var nopage, type, currentPage, lblname1;
 bloggerpage();
-
-
-// Función para generar enlaces con búsqueda personalizada en la paginación
-function createSearchPageLink(pageNum) {
-    let updatedMax = encodeURIComponent(findUpdatedMax(pageNum));
-    return `<span class="pagenumber"><a href="/search?q=${searchQuery}&updated-max=${updatedMax}&max-results=${itemsPerPage}&start=${(pageNum - 1) * itemsPerPage}&by-date=false">${pageNum}</a></span>`;
-}
-
-// Función para encontrar la fecha de actualización máxima
-function findUpdatedMax(pageNum) {
-    let jsonstart = (pageNum - 1) * itemsPerPage;
-    return jsonstart > 0 ? new Date().toISOString() : "";
-}
-
-// Ajuste en la función bloggerpage para manejar búsquedas en paginación
-function bloggerpage() {
-    let activePage = urlactivepage;
-
-    if (activePage.includes("?q=")) {
-        type = "search";
-        let queryIndex = activePage.indexOf("?q=") + 3;
-        searchQuery = activePage.substring(queryIndex, activePage.indexOf("&") > 0 ? activePage.indexOf("&") : activePage.length);
-        itemsPerPage = activePage.includes("&max-results=") ? parseInt(activePage.split("&max-results=")[1]) : 9;
-        currentPage = activePage.includes("#PageNo=")
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10)
-            : 1;
-
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
-    }
-}
