@@ -69,33 +69,16 @@ for (let r = start; r <= end; r++) {
 // Función para generar un enlace de página
 function createPageLink(pageNum, linkText, type) {
     if (type === "page") {
-    return `<span class="pagenumber">
-        <a href="#" onclick="event.preventDefault(); redirectpage(${pageNum});">${linkText}</a></span>`;
-    } else if (type === "search") {
-        return `<span class="pagenumber"><a href="#" onclick="redirectSearch(${pageNum}); return false;">${linkText}</a></span>`;
+        return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
     } else {
         return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
     }
 }
 
-
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
     pagination(totalResults);
-}
-
-// Función para manejar la paginación en búsqueda
-function paginationSearch(data) {
-    let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-
-    if (!itemsPerPage || isNaN(itemsPerPage)) {
-        itemsPerPage = 12; // Ajusta este número según tus necesidades
-    }
-
-    let totalPages = Math.ceil(totalResults / itemsPerPage); // Corrige la cantidad de páginas
-
-    pagination(totalResults); // Llama a la función de paginación con el número correcto de resultados
 }
 
 // Función para determinar el tipo de página y cargar la información
@@ -108,38 +91,26 @@ function bloggerpage() {
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-     if (activePage.includes("?q=")) {
-        type = "search";
-        currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
-
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${getSearchQuery()}&max-results=${itemsPerPage}&alt=json-in-script&callback=paginationSearch"></script>`);
-    } 
-    else if (!activePage.includes(".html") && !activePage.includes("/search/label/")) {
+    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
-    } 
-    else {
+    } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
             itemsPerPage = 12;
         }
-       let urlParams = new URLSearchParams(window.location.search);
-currentPage = urlParams.has("PageNo") ? parseInt(urlParams.get("PageNo"), 10) : 1;
+        currentPage = activePage.includes("#PageNo=") 
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
+
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
 }
 
-// Obtener la consulta de búsqueda
-function getSearchQuery() {
-    let urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("q") ? encodeURIComponent(urlParams.get("q")) : "";
-}
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
     // Si la página es 1, redirige directamente a la página de inicio
@@ -154,12 +125,10 @@ function redirectpage(pageNum) {
 
     let script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `${home_page}feeds/posts/summary?start-index=${(pageNum - 1) * itemsPerPage + 1}&max-results=1&alt=json-in-script&callback=finddatepost`;
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
 }
-
-
 
 // Función para redirigir a una etiqueta
 function redirectlabel(pageNum) {
