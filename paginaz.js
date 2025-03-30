@@ -183,17 +183,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Etiquetas BQ página
 document.addEventListener("DOMContentLoaded", function () {
-    let searchForm = document.querySelector('form[action="/search"]');
+    let searchLinks = document.querySelectorAll('a[href^="/search?q="]');
 
-    if (searchForm) {
-        searchForm.addEventListener("submit", function (event) {
-            let searchInput = searchForm.querySelector('input[name="q"]');
-            let query = searchInput.value.trim();
-
-            if (query !== "") {
-                event.preventDefault(); // Detiene el envío estándar del formulario
-                window.location.href = `/search?q=${encodeURIComponent(query)}&max-results=12`;
-            }
-        });
-    }
+    searchLinks.forEach(function (link) {
+        let url = new URL(link.href, window.location.origin);
+        
+        if (!url.searchParams.has("max-results") && !url.searchParams.has("updated-max")) {
+            url.searchParams.set("max-results", "12");
+            link.href = url.toString();
+        }
+    });
 });
