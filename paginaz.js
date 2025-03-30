@@ -80,12 +80,16 @@ function createPageLink(pageNum, linkText, type) {
 
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
+    console.log("Datos recibidos en paginationall:", data);
+    
     if (!data.feed || !data.feed.openSearch$totalResults) {
-        console.error("No se encontraron resultados para la paginación.");
+        console.error("No se encontraron resultados.");
         return;
     }
-    
+
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+    console.log("Total de resultados:", totalResults);
+
     pagination(totalResults);
 }
 
@@ -98,9 +102,11 @@ function bloggerpage() {
         lblname1 = activePage.includes("?updated-max") 
             ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
-    } else if (activePage.includes("?q=")) {
-        type = "search"; // 🔥 Nueva condición para manejar búsquedas
-    } else {
+} else if (activePage.includes("?q=")) {
+    type = "search";
+    searchQuery = activePage.split("?q=")[1].split("&")[0]; // 🔥 Extrae el término de búsqueda
+    document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+} else {
         type = "page";
     }
 
@@ -145,6 +151,8 @@ function redirectsearch(pageNum) {
     script.src = `${home_page}feeds/posts/summary?q=${searchQuery}&start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
 
     document.getElementsByTagName("head")[0].appendChild(script);
+
+    console.log(`Redirigiendo a búsqueda: ${script.src}`);
 }
 
 // Función para redirigir a una etiqueta
@@ -162,7 +170,7 @@ function redirectlabel(pageNum) {
 // Función para manejar la redirección con fecha
 function finddatepost(data) {
     if (!data.feed.entry || data.feed.entry.length === 0) {
-        console.error("No se encontraron entradas para la fecha seleccionada.");
+        console.error("No se encontraron entradas.");
         return;
     }
 
@@ -170,19 +178,11 @@ function finddatepost(data) {
     let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
     let encodedDate = encodeURIComponent(dateStr);
 
-    let redirectUrl = "";
+    let redirectUrl = `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
 
-    if (type === "page") {
-        redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else if (type === "label") {
-        redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else if (type === "search") {
-        redirectUrl = `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    }
-
+    console.log("Redirigiendo a:", redirectUrl);
     location.href = redirectUrl;
 }
-
 // Inicialización de la página
 var nopage, type, currentPage, lblname1;
 bloggerpage();
