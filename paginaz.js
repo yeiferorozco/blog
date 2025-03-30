@@ -93,19 +93,11 @@ function bloggerpage() {
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (activePage.includes("?q=")) {
-        type = "search";
-        currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
-
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${getSearchQuery()}&max-results=1&alt=json-in-script&callback=paginationSearch"></script>`);
-    } 
-    else if (!activePage.includes(".html") && !activePage.includes("/search/label/")) {
+    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
-            ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-            : 1;
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
@@ -119,18 +111,6 @@ function bloggerpage() {
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
-}
-
-// Obtener la consulta de búsqueda
-function getSearchQuery() {
-    let urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("q") ? encodeURIComponent(urlParams.get("q")) : "";
-}
-
-// Función para manejar la paginación de búsquedas
-function paginationSearch(data) {
-    let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-    pagination(totalResults);
 }
 
 // Función para redirigir a la página seleccionada
