@@ -91,18 +91,7 @@ function bloggerpage() {
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (activePage.includes("?q=")) {
-    type = "search";
-    if (!activePage.includes("&max-results=")) {
-        itemsPerPage = 12;
-    }
-    currentPage = activePage.includes("#PageNo=") 
-        ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-        : 1;
-
-    document.write(`<script src="${home_page}feeds/posts/summary?q=${encodeURIComponent(getQueryParameter("q"))}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
-}
-else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
     ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
@@ -159,13 +148,24 @@ function finddatepost(data) {
     let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
     let encodedDate = encodeURIComponent(dateStr);
 
-    let redirectUrl = type === "page"
-        ? `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
-        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    let searchParams = new URLSearchParams(window.location.search);
+    let searchQuery = searchParams.get("q"); // Obtiene el término de búsqueda si existe
+
+    let redirectUrl;
+
+    if (searchQuery) {
+        // Es una búsqueda, mantiene la consulta "q="
+        redirectUrl = `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    } else if (type === "label") {
+        // Es una etiqueta (label)
+        redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    } else {
+        // Es una paginación general
+        redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    }
 
     location.href = redirectUrl;
 }
-
 // Inicialización de la página
 var nopage, type, currentPage, lblname1;
 bloggerpage();
@@ -179,27 +179,4 @@ document.addEventListener("DOMContentLoaded", function () {
             link.href += "?&max-results=12";
         }
     });
-});
-
-// Etiquetas BQ página
-document.addEventListener("DOMContentLoaded", function () {
-    let searchForm = document.querySelector('form[action="/search"]');
-
-    if (searchForm) {
-        searchForm.addEventListener("submit", function (event) {
-            let searchInput = searchForm.querySelector('input[name="q"]');
-            let query = searchInput.value.trim();
-
-            if (query !== "") {
-                let actionUrl = searchForm.action + "?q=" + encodeURIComponent(query);
-
-                // Si la URL no contiene "updated-max", agregamos "max-results=12"
-                if (!actionUrl.includes("&updated-max=") && !actionUrl.includes("&max-results=")) {
-                    actionUrl += "&max-results=12";
-                }
-
-                searchForm.action = actionUrl; // Modificamos la acción del formulario
-            }
-        });
-    }
 });
