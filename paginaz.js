@@ -182,20 +182,11 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Etiquetas BQ página
-document.addEventListener("DOMContentLoaded", function () {
-    let searchLinks = document.querySelectorAll('a[href*="/search?q="]');
+function fixSearchQuery(form) {
+    let query = form.q.value.trim(); // Obtener la consulta de búsqueda sin espacios extra
 
-    searchLinks.forEach(function (link) {
-        let href = link.href;
-
-        // Si la URL ya contiene "&updated-max=", no hacer nada
-        if (href.includes("&updated-max=")) {
-            return;
-        }
-
-        // Si la URL no tiene "&max-results=", añadirlo
-        if (!href.includes("&max-results=")) {
-            link.href += "&max-results=12";
-        }
-    });
-});
+    if (query !== "") {
+        let newAction = `/search?q=${encodeURIComponent(query)}&max-results=12`;
+        form.action = newAction;
+    }
+}
