@@ -88,12 +88,13 @@ function paginationall(data) {
 function paginationSearch(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
 
-    // Si no se ha definido un número de resultados por página, establecer un valor por defecto
     if (!itemsPerPage || isNaN(itemsPerPage)) {
-        itemsPerPage = 12; // O el valor que prefieras para la paginación
+        itemsPerPage = 12; // Ajusta este número según tus necesidades
     }
 
-    pagination(totalResults);
+    let totalPages = Math.ceil(totalResults / itemsPerPage); // Corrige la cantidad de páginas
+
+    pagination(totalResults); // Llama a la función de paginación con el número correcto de resultados
 }
 
 // Función para determinar el tipo de página y cargar la información
@@ -112,7 +113,7 @@ function bloggerpage() {
             ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
             : 1;
 
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${getSearchQuery()}&max-results=1&alt=json-in-script&callback=paginationSearch"></script>`);
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${getSearchQuery()}&max-results=${itemsPerPage}&alt=json-in-script&callback=paginationSearch"></script>`);
     } 
     else if (!activePage.includes(".html") && !activePage.includes("/search/label/")) {
         type = "page";
