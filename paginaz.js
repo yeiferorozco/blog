@@ -90,22 +90,52 @@ function bloggerpage() {
             ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
+function bloggerpage() {
+    let activePage = urlactivepage;
+    let currentPage = 1;
+    let lblname1 = "";
+    let type = "";
 
-    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    // Extraer el número de página si existe
+    function getPageNumber(url) {
+        return url.includes("#PageNo=") 
+            ? parseInt(url.substring(url.indexOf("#PageNo=") + 8), 10) 
+            : 1;
+    }
+
+    // Detectar etiquetas (labels)
+    if (activePage.includes("/search/label/")) {
+        let start = activePage.indexOf("/search/label/") + 14;
+        let end = activePage.indexOf("?updated-max") !== -1 
+            ? activePage.indexOf("?updated-max") 
+            : activePage.indexOf("?&max");
+
+        lblname1 = end !== -1 ? activePage.substring(start, end) : activePage.substring(start);
+    }
+
+    // Detectar búsquedas (?q=)
+    if (activePage.includes("?q=")) {
+        type = "search";
+        let queryStart = activePage.indexOf("?q=") + 3;
+        let queryEnd = activePage.includes("&") ? activePage.indexOf("&") : activePage.length;
+        let searchQuery = decodeURIComponent(activePage.substring(queryStart, queryEnd)); // Decodificar caracteres especiales
+
+        currentPage = getPageNumber(activePage);
+
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+
+    } else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
-        currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
+        currentPage = getPageNumber(activePage);
 
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
+
     } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
             itemsPerPage = 12;
         }
-        currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
+        currentPage = getPageNumber(activePage);
 
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
@@ -148,24 +178,21 @@ function finddatepost(data) {
     let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
     let encodedDate = encodeURIComponent(dateStr);
 
-    let searchParams = new URLSearchParams(window.location.search);
-    let searchQuery = searchParams.get("q"); // Obtiene el término de búsqueda si existe
+    let redirectUrl = type === "page"
+let redirectUrl;
 
-    let redirectUrl;
-
-    if (searchQuery) {
-        // Es una búsqueda, mantiene la consulta "q="
-        redirectUrl = `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else if (type === "label") {
-        // Es una etiqueta (label)
-        redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    } else {
-        // Es una paginación general
-        redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-    }
-
-    location.href = redirectUrl;
+if (type === "page") {
+    redirectUrl = `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+} else if (type === "label") {
+    redirectUrl = `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+} else if (type === "search") {
+    redirectUrl = `/search?q=${searchQuery}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
 }
+
+location.href = redirectUrl;
+
+}
+
 // Inicialización de la página
 var nopage, type, currentPage, lblname1;
 bloggerpage();
