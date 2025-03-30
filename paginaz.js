@@ -105,7 +105,7 @@ function bloggerpage() {
 } else if (activePage.includes("?q=")) {
     type = "search";
     searchQuery = activePage.split("?q=")[1].split("&")[0]; // 🔥 Extrae el término de búsqueda
-    document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1000"></script>`);
+    document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=9"></script>`);
 } else {
         type = "page";
     }
@@ -117,7 +117,7 @@ function bloggerpage() {
     if (type === "label") {
         document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     } else if (type === "search") {
-        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+        document.write(`<script src="${home_page}feeds/posts/summary?q=${searchQuery}&alt=json-in-script&callback=paginationall&max-results=9"></script>`);
     } else {
         document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     }
