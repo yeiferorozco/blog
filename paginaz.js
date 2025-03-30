@@ -91,7 +91,18 @@ function bloggerpage() {
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
 
-    if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
+    if (activePage.includes("?q=")) {
+    type = "search";
+    if (!activePage.includes("&max-results=")) {
+        itemsPerPage = 12;
+    }
+    currentPage = activePage.includes("#PageNo=") 
+        ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+        : 1;
+
+    document.write(`<script src="${home_page}feeds/posts/summary?q=${encodeURIComponent(getQueryParameter("q"))}&alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+}
+else if (!activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
         currentPage = activePage.includes("#PageNo=") 
     ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
