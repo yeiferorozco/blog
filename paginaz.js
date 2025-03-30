@@ -188,15 +188,17 @@ document.addEventListener("DOMContentLoaded", function () {
     if (searchForm) {
         searchForm.addEventListener("submit", function (event) {
             let searchInput = searchForm.querySelector('input[name="q"]');
+            let query = searchInput.value.trim();
 
-            if (searchInput) {
-                let query = searchInput.value.trim();
+            if (query !== "") {
+                let actionUrl = searchForm.action + "?q=" + encodeURIComponent(query);
 
-                if (query !== "") {
-                    event.preventDefault(); // Evita que se envíe el formulario de manera tradicional
-                    let newURL = `/search?q=${encodeURIComponent(query)}&max-results=12`;
-                    window.location.href = newURL;
+                // Si la URL no contiene "updated-max", agregamos "max-results=12"
+                if (!actionUrl.includes("&updated-max=") && !actionUrl.includes("&max-results=")) {
+                    actionUrl += "&max-results=12";
                 }
+
+                searchForm.action = actionUrl; // Modificamos la acción del formulario
             }
         });
     }
