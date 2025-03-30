@@ -87,6 +87,12 @@ function paginationall(data) {
 // Función para manejar la paginación en búsqueda
 function paginationSearch(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+
+    // Si no se ha definido un número de resultados por página, establecer un valor por defecto
+    if (!itemsPerPage || isNaN(itemsPerPage)) {
+        itemsPerPage = 12; // O el valor que prefieras para la paginación
+    }
+
     pagination(totalResults);
 }
 
