@@ -1,6 +1,5 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1;
-var lastPostDate = "";
+var nopage, type, currentPage, lblname1, searchQuery;
 
 // Función principal de paginación
 function pagination(totalPosts) {
@@ -18,44 +17,47 @@ function pagination(totalPosts) {
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
     
     if (currentPage > 1) {
-        paginationHTML += createPageLink(currentPage - 1, "Anterior");
+        paginationHTML += createPageLink(currentPage - 1, "Anterior", type);
     }
     
     if (start > 1) {
-        paginationHTML += createPageLink(1, "1");
+        paginationHTML += createPageLink(1, "1", type);
     }
     
     if (start > 2) paginationHTML += "...";
     
     for (let r = start; r <= end; r++) {
-        paginationHTML += r === currentPage ? `<span class="pagenumber current">${r}</span>` : createPageLink(r, r);
+        paginationHTML += r === currentPage ? `<span class="pagenumber current">${r}</span>` : createPageLink(r, r, type);
     }
     
     if (end < maximum - 1) paginationHTML += "...";
-    if (end < maximum) paginationHTML += createPageLink(maximum, maximum);
+    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
     
     if (currentPage < maximum) {
-        paginationHTML += createPageLink(currentPage + 1, "Siguiente");
+        paginationHTML += createPageLink(currentPage + 1, "Siguiente", type);
     }
     
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con la fecha correcta
-function createPageLink(pageNum, linkText) {
-    let updatedMax = encodeURIComponent(lastPostDate || getUpdatedMax());
-    let queryParam = new URLSearchParams(window.location.search).get("q") || "";
-    return `<span class="pagenumber"><a href="/search?q=${queryParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}">${linkText}</a></span>`;
+// Genera enlaces de paginación con fecha actualizada
+function createPageLink(pageNum, linkText, type) {
+    let updatedMax = getUpdatedMax();
+    let url;
+    
+    if (type === "page") {
+        url = `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    } else {
+        url = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    }
+    
+    return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post visible
-function finddatepost(data) {
-    let entries = data.feed.entry;
-    if (entries && entries.length > 0) {
-        let lastEntry = entries[entries.length - 1];
-        lastPostDate = lastEntry.published.$t;
-    }
-    paginationall(data);
+// Obtiene la fecha del último post en formato correcto
+function getUpdatedMax() {
+    let date = new Date();
+    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
 // Procesa los datos de Blogger
@@ -67,18 +69,23 @@ function paginationall(data) {
 // Determina el tipo de página y carga información
 function bloggerpage() {
     let activePage = window.location.href;
+    
     if (activePage.includes("/search/label/")) {
         lblname1 = activePage.split("/search/label/")[1].split("?")[0];
         type = "label";
+    } else if (activePage.includes("/search?q=")) {
+        let match = activePage.match(/q=([^&]+)/);
+        searchQuery = match ? decodeURIComponent(match[1]) : "";
+        type = "page";
     } else {
         type = "page";
+        searchQuery = "";
     }
     
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
-    
     let scriptUrl = type === "page" 
-        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=finddatepost`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=finddatepost&max-results=${itemsPerPage}`;
+        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
     
     let script = document.createElement("script");
     script.src = scriptUrl;
