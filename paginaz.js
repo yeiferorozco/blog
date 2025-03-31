@@ -6,6 +6,7 @@ let lblname1 = "";
 let home_page = window.location.origin + "/";
 let jsonstart = 0;
 let nopage = 1;
+let searchQuery = "";
 
 // Función para generar la paginación
 function pagination(totalPosts) {
@@ -56,18 +57,22 @@ function paginationall(data) {
 // Identificación del tipo de página
 function bloggerpage() {
     let activePage = window.location.href;
+    let searchParams = new URLSearchParams(window.location.search);
+    searchQuery = searchParams.get("q") || "";
     
     if (activePage.includes("/search/label/")) {
         let match = activePage.match(/\/search\/label\/([^?&]+)/);
         lblname1 = match ? match[1] : "";
         type = "label";
+    } else if (searchQuery) {
+        type = "search";
     }
     
     let pageMatch = activePage.match(/#PageNo=(\d+)/);
     currentPage = pageMatch ? parseInt(pageMatch[1], 10) : 1;
     
     let script = document.createElement("script");
-    script.src = type === "page" 
+    script.src = type === "page" || type === "search" 
         ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
         : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=1&alt=json-in-script&callback=paginationall`;
     document.head.appendChild(script);
@@ -78,11 +83,16 @@ function finddatepost(data) {
     let post = data.feed.entry[0];
     let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
     let encodedDate = encodeURIComponent(dateStr);
-
-    let redirectUrl = type === "page"
-        ? `${home_page}search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
-        : `${home_page}search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-
+    
+    let redirectUrl;
+    if (type === "search") {
+        redirectUrl = `${home_page}search?q=${encodeURIComponent(searchQuery)}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    } else if (type === "page") {
+        redirectUrl = `${home_page}search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    } else {
+        redirectUrl = `${home_page}search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+    }
+    
     location.href = redirectUrl;
 }
 
