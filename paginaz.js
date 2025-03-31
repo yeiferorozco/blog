@@ -58,33 +58,8 @@ function createPageLink(pageNum, linkText, type) {
 
 // Obtiene la fecha del último post en formato correcto
 function getUpdatedMax() {
-    // Si estamos en la página 1, usamos la fecha actual
-    if (currentPage === 1) {
-        let date = new Date();
-        return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
-    }
-
-    // Para otras páginas, obtenemos la fecha del último post de la página anterior
-    let lastPostDate = getLastPostDateFromData();
-    return encodeURIComponent(lastPostDate.toISOString().replace(".000", "").replace("Z", "-05:00"));
-}
-
-// Obtiene la fecha del último post de la página actual
-function getLastPostDateFromData() {
-    let lastPost = null;
-
-    // Analizamos los datos del feed de Blogger
-    if (data && data.feed && data.feed.entry && data.feed.entry.length > 0) {
-        lastPost = data.feed.entry[data.feed.entry.length - 1];
-    }
-
-    // Extraemos la fecha del último post
-    if (lastPost && lastPost.published && lastPost.published.$t) {
-        return new Date(lastPost.published.$t);
-    }
-
-    // Si no hay datos disponibles, usamos la fecha actual
-    return new Date();
+    let date = new Date();
+    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
 // Procesa los datos de Blogger
@@ -107,8 +82,8 @@ function bloggerpage() {
 
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
     let scriptUrl = type === "page"
-        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}`;
+        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
