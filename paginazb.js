@@ -1,4 +1,4 @@
-//Paginación en búsquedas
+// Paginación en búsquedas
 
 // Parámetros globales
 var currentPage, searchQuery, itemsPerPage = 12, lastPostDate = null;
@@ -65,16 +65,23 @@ function paginationall(data) {
 }
 
 function bloggerpage() {
+    let activePage = window.location.href;
     searchQuery = getSearchQuery();
-    currentPage = window.location.href.includes("#PageNo=") ? parseInt(window.location.href.split("#PageNo=")[1]) : 1;
-    
-    let scriptUrl = `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
-    
+
+    // Solo ejecutar si hay una búsqueda con ?q= y no es una etiqueta
+    if (!searchQuery || activePage.includes("/search/label/")) return;
+
+    // Ajustar currentPage según start en la URL para búsquedas
+    let urlParams = new URLSearchParams(window.location.search);
+    currentPage = urlParams.get("start") 
+        ? Math.floor(parseInt(urlParams.get("start")) / itemsPerPage) + 1 
+        : 1;
+
+    let scriptUrl = `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&q=${encodeURIComponent(searchQuery)}&alt=json-in-script&callback=paginationall`;
+
     let script = document.createElement("script");
     script.src = scriptUrl;
     document.body.appendChild(script);
 }
 
 document.addEventListener("DOMContentLoaded", bloggerpage);
-
-
