@@ -1,16 +1,14 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery, itemsPerPage = 12, lastPostDate;
+var nopage, type, currentPage, lblname1, searchQuery, itemsPerPage = 12, lastPostDate = null;
 
-// Función para obtener el término de búsqueda del usuario
 function getSearchQuery() {
     let urlParams = new URLSearchParams(window.location.search);
     return urlParams.get("q") || "";
 }
 
-// Función principal de paginación
 function pagination(totalPosts) {
     let paginationHTML = "";
-    let pagesToShow = 5; // Puedes ajustar este valor
+    let pagesToShow = 5;
     let leftnum = Math.floor(pagesToShow / 2);
     let maximum = Math.ceil(totalPosts / itemsPerPage);
 
@@ -42,37 +40,38 @@ function pagination(totalPosts) {
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
-    let updatedMaxParam = pageNum > 1 ? `&updated-max=${encodeURIComponent(lastPostDate)}` : "";
+    // Usar lastPostDate si existe, de lo contrario omitir updated-max en la página 1
+    let updatedMax = lastPostDate || (pageNum === 1 ? null : new Date().toISOString().replace(".000", "").replace("Z", "-05:00"));
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let startIndex = (pageNum - 1) * itemsPerPage;
     let url;
 
     if (type === "page") {
-        url = `https://www.yeifer.com/search?${searchParam}${updatedMaxParam}&max-results=${itemsPerPage}&start-index=${startIndex}&by-date=false`;
+        url = `https://www.yeifer.com/search?${searchParam}` +
+              (pageNum > 1 && updatedMax ? `&updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
     } else {
-        url = `https://www.yeifer.com/search/label/${lblname1}${updatedMaxParam}&max-results=${itemsPerPage}&start-index=${startIndex}&by-date=false`;
+        url = `https://www.yeifer.com/search/label/${lblname1}` +
+              (pageNum > 1 && updatedMax ? `?updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
     }
 
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Procesa los datos de Blogger y extrae la fecha del último post
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
     
-    // Obtener la fecha del último post de la página actual
+    // Actualizar lastPostDate solo si hay entradas en el feed
     if (data.feed.entry && data.feed.entry.length > 0) {
         lastPostDate = data.feed.entry[data.feed.entry.length - 1].updated.$t;
     } else if (!lastPostDate) {
+        // Si no hay entradas y lastPostDate no está definido, usar fecha actual como fallback
         lastPostDate = new Date().toISOString().replace(".000", "").replace("Z", "-05:00");
     }
 
     pagination(totalResults);
 }
 
-// Determina el tipo de página y carga información
 function bloggerpage() {
     let activePage = window.location.href;
     searchQuery = getSearchQuery();
@@ -87,13 +86,12 @@ function bloggerpage() {
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
     
     let scriptUrl = type === "page"
-        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start-index=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=${itemsPerPage}&start-index=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
+        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
     document.body.appendChild(script);
 }
 
-// Inicialización
 document.addEventListener("DOMContentLoaded", bloggerpage);
