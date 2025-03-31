@@ -17,11 +17,11 @@ function pagination(totalPosts, lastPostDate) {
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
 
     if (currentPage > 1) {
-        paginationHTML += createPageLink(currentPage - 1, "Anterior", type, lastPostDate);
+        paginationHTML += createPageLink(currentPage - 1, "Anterior", type);
     }
 
     if (start > 1) {
-        paginationHTML += createPageLink(1, "1", type, lastPostDate);
+        paginationHTML += createPageLink(1, "1", type);
     }
 
     if (start > 2) paginationHTML += "...";
@@ -29,22 +29,22 @@ function pagination(totalPosts, lastPostDate) {
     for (let r = start; r <= end; r++) {
         paginationHTML += r === currentPage 
             ? `<span class="pagenumber current">${r}</span>` 
-            : createPageLink(r, r, type, lastPostDate);
+            : createPageLink(r, r, type);
     }
 
     if (end < maximum - 1) paginationHTML += "...";
-    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type, lastPostDate);
+    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
 
     if (currentPage < maximum) {
-        paginationHTML += createPageLink(currentPage + 1, "Siguiente", type, lastPostDate);
+        paginationHTML += createPageLink(currentPage + 1, "Siguiente", type);
     }
 
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
 // Genera enlaces de paginación con updated-max basado en el último post
-function createPageLink(pageNum, linkText, type, lastPostDate) {
-    let updatedMax = lastPostDate ? subtractMinutes(lastPostDate, 10) : "";
+function createPageLink(pageNum, linkText, type) {
+    let updatedMax = lastUpdatedMax ? subtractMinutes(lastUpdatedMax, 10) : "";
     let url;
 
     if (type === "page") {
@@ -60,7 +60,7 @@ function createPageLink(pageNum, linkText, type, lastPostDate) {
 function subtractMinutes(dateString, minutes) {
     let date = new Date(dateString);
     date.setMinutes(date.getMinutes() - minutes);
-    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
+    return date.toISOString().replace(".000", "").replace("Z", "-05:00");
 }
 
 // Procesa los datos de Blogger y obtiene la fecha del último post
