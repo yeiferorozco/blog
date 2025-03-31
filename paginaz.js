@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
     let urlParams = new URLSearchParams(window.location.search);
     let isSearchPage = window.location.href.includes("search?q=");
-    
+    let home_page = window.location.origin + "/";
+
     if (isSearchPage) {
-        // Código de paginación en búsquedas
         var currentPage, searchQuery, itemsPerPage = 12, lastPostDate = null;
 
         function getSearchQuery() {
@@ -41,15 +41,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 paginationHTML += createPageLink(currentPage + 1, "Siguiente");
             }
 
-            document.getElementById("blog-pager").innerHTML = paginationHTML;
+            if (document.getElementById("blog-pager")) {
+                document.getElementById("blog-pager").innerHTML = paginationHTML;
+            }
         }
 
         function createPageLink(pageNum, linkText) {
             let updatedMax = lastPostDate || (pageNum === 1 ? null : new Date().toISOString().replace(".000", "").replace("Z", "-05:00"));
             let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
             let startIndex = (pageNum - 1) * itemsPerPage;
-            let url = `https://www.yeifer.com/search?${searchParam}` +
-                      (pageNum > 1 && updatedMax ? `&updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
+            let url = `https://www.yeifer.com/search?${searchParam}`
+                + (pageNum > 1 && updatedMax ? `&updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
 
             return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
         }
@@ -79,9 +81,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         bloggerpage();
     } else {
-        // Código que debe ejecutarse si NO es una página de búsqueda
         console.log("Ejecutando código para otras páginas...");
-        // Aquí va tu otro código sin modificar
+        // Aquí pon el otro código que debe ejecutarse fuera de páginas de búsqueda.
 // Función principal de paginación
 function pagination(totalPosts) {
     let paginationHTML = "";
