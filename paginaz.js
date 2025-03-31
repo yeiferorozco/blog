@@ -94,7 +94,7 @@ function bloggerpage() {
 function redirectpage(pageNum) {
     let updatedMax = getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
-    location.href = `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    location.href = `/search?${searchParam}&updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage};
 }
 
 // Redirigir a una etiqueta específica con fecha actualizada
