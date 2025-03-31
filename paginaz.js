@@ -6,6 +6,7 @@ function getSearchQuery() {
     return urlParams.get("q") || "";
 }
 
+// Función principal de paginación
 function pagination(totalPosts) {
     let paginationHTML = "";
     let leftnum = Math.floor(pagesToShow / 2);
@@ -30,7 +31,7 @@ function pagination(totalPosts) {
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
 
     // Enlace a la página anterior
-    let previousPage = currentPage > 1 ? createPageLink(currentPage - 1, "Anterior", type) : "";
+    let previousPage = currentPage > 1 ? createPageLink(currentPage - 1, prevpage, type) : "";
     paginationHTML += previousPage;
 
     // Enlace a la página 1
@@ -57,7 +58,7 @@ function pagination(totalPosts) {
     if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
 
     // Enlace a la siguiente página
-    let nextPage = currentPage < maximum ? createPageLink(currentPage + 1, "Siguiente", type) : "";
+    let nextPage = currentPage < maximum ? createPageLink(currentPage + 1, nextpage, type) : "";
     paginationHTML += nextPage;
 
     // Actualizar el área de la página
@@ -102,7 +103,7 @@ function paginationall(data) {
 }
 
 function bloggerpage() {
-    let activePage = window.location.href;
+    let activePage = window.location.href; // Cambié urlactivepage por window.location.href para compatibilidad
     searchQuery = getSearchQuery();
 
     if (activePage.indexOf("/search/label/") !== -1) {
