@@ -1,20 +1,3 @@
-// Extra la fecha del último post y redirige con la fecha actualizada
-function finddatepost(data) {
-    if (!data.feed.entry || data.feed.entry.length === 0) return;
-
-    let post = data.feed.entry[0];
-    let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
-    let encodedDate = encodeURIComponent(dateStr);
-
-    let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
-
-    let redirectUrl = type === "page"
-        ? `/search?${searchParam ? searchParam + "&" : ""}updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
-        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
-
-    location.href = redirectUrl;
-}
-
 // Parámetros globales
 var nopage, type, currentPage, lblname1, searchQuery;
 
@@ -68,9 +51,18 @@ function createPageLink(pageNum, linkText, type) {
     let updatedMax = getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let url = type === "page"
-        ? `/search?${searchParam ? searchParam + "&" : ""}updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
+        ? `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
         : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
+}
+
+// Obtiene la fecha del primer post de la página
+function finddatepost(data) {
+    if (data.feed.entry && data.feed.entry.length > 0) {
+        let dateStr = data.feed.entry[0].published.$t;
+        return encodeURIComponent(dateStr.replace("Z", "-05:00"));
+    }
+    return getUpdatedMax(); // Si no hay post, usa la fecha actual
 }
 
 // Obtiene la fecha del último post en formato correcto
@@ -99,24 +91,24 @@ function bloggerpage() {
 
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
     let scriptUrl = type === "page"
-        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
+        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=finddatepost`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=finddatepost&max-results=1`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
     document.body.appendChild(script);
 }
 
-// Redirigir a una página específica con fecha actualizada
+// Redirigir a una página específica con fecha obtenida del primer post
 function redirectpage(pageNum) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = finddatepost(data);
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
-    location.href = `/search?${searchParam ? searchParam + "&" : ""}updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    location.href = `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
-// Redirigir a una etiqueta específica con fecha actualizada
+// Redirigir a una etiqueta específica con fecha obtenida del primer post
 function redirectlabel(pageNum) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = finddatepost(data);
     location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
