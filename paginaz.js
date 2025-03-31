@@ -1,5 +1,5 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1;
+var nopage, type, currentPage, lblname1, searchQuery;
 
 // Función principal de paginación
 function pagination(totalPosts) {
@@ -43,9 +43,14 @@ function pagination(totalPosts) {
 // Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
     let updatedMax = getUpdatedMax();
-    let url = type === "page" 
-        ? `/search?q=libros&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
-        : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    let url;
+    
+    if (type === "page") {
+        url = `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    } else {
+        url = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+    }
+    
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
@@ -64,11 +69,17 @@ function paginationall(data) {
 // Determina el tipo de página y carga información
 function bloggerpage() {
     let activePage = window.location.href;
+    
     if (activePage.includes("/search/label/")) {
         lblname1 = activePage.split("/search/label/")[1].split("?")[0];
         type = "label";
+    } else if (activePage.includes("/search?q=")) {
+        let match = activePage.match(/q=([^&]+)/);
+        searchQuery = match ? decodeURIComponent(match[1]) : "";
+        type = "page";
     } else {
         type = "page";
+        searchQuery = "";
     }
     
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
@@ -79,18 +90,6 @@ function bloggerpage() {
     let script = document.createElement("script");
     script.src = scriptUrl;
     document.body.appendChild(script);
-}
-
-// Redirigir a una página específica con fecha actualizada
-function redirectpage(pageNum) {
-    let updatedMax = getUpdatedMax();
-    location.href = `/search?q=libros&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
-}
-
-// Redirigir a una etiqueta específica con fecha actualizada
-function redirectlabel(pageNum) {
-    let updatedMax = getUpdatedMax();
-    location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Inicialización
