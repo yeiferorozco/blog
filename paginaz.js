@@ -1,8 +1,8 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery, lastPostDate = "";
+var nopage, type, currentPage, lblname1, searchQuery, lastPostDates = [];
 
 // Función principal de paginación
-function pagination(totalPosts, lastPostDateParam) {
+function pagination(totalPosts) {
     let paginationHTML = "";
     let leftnum = Math.floor(pagesToShow / 2);
     
@@ -17,32 +17,32 @@ function pagination(totalPosts, lastPostDateParam) {
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
     
     if (currentPage > 1) {
-        paginationHTML += createPageLink(currentPage - 1, "Anterior", type, lastPostDateParam);
+        paginationHTML += createPageLink(currentPage - 1, "Anterior", type);
     }
     
     if (start > 1) {
-        paginationHTML += createPageLink(1, "1", type, lastPostDateParam);
+        paginationHTML += createPageLink(1, "1", type);
     }
     
     if (start > 2) paginationHTML += "...";
     
     for (let r = start; r <= end; r++) {
-        paginationHTML += r === currentPage ? `<span class="pagenumber current">${r}</span>` : createPageLink(r, r, type, lastPostDateParam);
+        paginationHTML += r === currentPage ? `<span class="pagenumber current">${r}</span>` : createPageLink(r, r, type);
     }
     
     if (end < maximum - 1) paginationHTML += "...";
-    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type, lastPostDateParam);
+    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
     
     if (currentPage < maximum) {
-        paginationHTML += createPageLink(currentPage + 1, "Siguiente", type, lastPostDateParam);
+        paginationHTML += createPageLink(currentPage + 1, "Siguiente", type);
     }
     
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con fecha actualizada
-function createPageLink(pageNum, linkText, type, lastPostDateParam) {
-    let updatedMax = lastPostDateParam || getUpdatedMax();
+// Genera enlaces de paginación con una fecha diferente para cada página
+function createPageLink(pageNum, linkText, type) {
+    let updatedMax = getUpdatedMax(pageNum);
     let url;
     
     if (type === "page") {
@@ -54,25 +54,26 @@ function createPageLink(pageNum, linkText, type, lastPostDateParam) {
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post en formato correcto
-function getUpdatedMax() {
-    if (lastPostDate) {
-        return encodeURIComponent(lastPostDate);
+// Obtiene una fecha diferente para cada página
+function getUpdatedMax(pageNum) {
+    if (lastPostDates.length >= pageNum) {
+        return encodeURIComponent(lastPostDates[pageNum - 1]);
     }
     let date = new Date();
     return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
-// Procesa los datos de Blogger y obtiene la fecha del último post
+// Procesa los datos de Blogger y almacena las fechas de los últimos posts
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
     
-    // Obtener la fecha del último post en la página actual
     if (data.feed.entry && data.feed.entry.length > 0) {
-        lastPostDate = data.feed.entry[data.feed.entry.length - 1].published.$t;
+        for (let i = 0; i < data.feed.entry.length; i++) {
+            lastPostDates.push(data.feed.entry[i].published.$t);
+        }
     }
     
-    pagination(totalResults, lastPostDate);
+    pagination(totalResults);
 }
 
 // Determina el tipo de página y carga información
