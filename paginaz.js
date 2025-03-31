@@ -1,8 +1,14 @@
 // Parámetros globales
-var type, currentPage, lblname1, searchQuery, lastUpdatedMax = "";
+var nopage, type, currentPage, lblname1, searchQuery;
+
+// Función para obtener el término de búsqueda del usuario
+function getSearchQuery() {
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("q") || ""; // Obtiene el valor de "q" o una cadena vacía si no existe
+}
 
 // Función principal de paginación
-function pagination(totalPosts, lastPostDate) {
+function pagination(totalPosts) {
     let paginationHTML = "";
     let leftnum = Math.floor(pagesToShow / 2);
 
@@ -27,9 +33,7 @@ function pagination(totalPosts, lastPostDate) {
     if (start > 2) paginationHTML += "...";
 
     for (let r = start; r <= end; r++) {
-        paginationHTML += r === currentPage 
-            ? `<span class="pagenumber current">${r}</span>` 
-            : createPageLink(r, r, type);
+        paginationHTML += r === currentPage ? `<span class="pagenumber current">${r}</span>` : createPageLink(r, r, type);
     }
 
     if (end < maximum - 1) paginationHTML += "...";
@@ -42,64 +46,61 @@ function pagination(totalPosts, lastPostDate) {
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con updated-max basado en el último post
+// Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
-    let updatedMax = lastUpdatedMax ? subtractMinutes(lastUpdatedMax, 10) : "";
-    let url;
-
-    if (type === "page") {
-        url = `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
-    } else {
-        url = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
-    }
-
+    let updatedMax = getUpdatedMax();
+    let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
+    let url = type === "page"
+        ? `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
+        : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Resta minutos a una fecha en formato ISO
-function subtractMinutes(dateString, minutes) {
-    let date = new Date(dateString);
-    date.setMinutes(date.getMinutes() - minutes);
-    return date.toISOString().replace(".000", "").replace("Z", "-05:00");
+// Obtiene la fecha del último post en formato correcto
+function getUpdatedMax() {
+    let date = new Date();
+    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
-// Procesa los datos de Blogger y obtiene la fecha del último post
+// Procesa los datos de Blogger
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-
-    // Obtener la fecha del último post en la página actual
-    if (data.feed.entry && data.feed.entry.length > 0) {
-        lastUpdatedMax = data.feed.entry[data.feed.entry.length - 1].published.$t;
-    }
-
-    pagination(totalResults, lastUpdatedMax);
+    pagination(totalResults);
 }
 
 // Determina el tipo de página y carga información
 function bloggerpage() {
     let activePage = window.location.href;
+    searchQuery = getSearchQuery(); // Obtiene la consulta de búsqueda del usuario
 
     if (activePage.includes("/search/label/")) {
         lblname1 = activePage.split("/search/label/")[1].split("?")[0];
         type = "label";
-    } else if (activePage.includes("/search?q=")) {
-        let match = activePage.match(/q=([^&]+)/);
-        searchQuery = match ? decodeURIComponent(match[1]) : "";
-        type = "page";
     } else {
         type = "page";
-        searchQuery = "";
     }
 
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
-
-    let scriptUrl = type === "page" 
-        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}`;
+    let scriptUrl = type === "page"
+        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
     document.body.appendChild(script);
+}
+
+// Redirigir a una página específica con fecha actualizada
+function redirectpage(pageNum) {
+    let updatedMax = getUpdatedMax();
+    let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
+    location.href = `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+}
+
+// Redirigir a una etiqueta específica con fecha actualizada
+function redirectlabel(pageNum) {
+    let updatedMax = getUpdatedMax();
+    location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Inicialización
