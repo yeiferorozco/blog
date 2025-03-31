@@ -44,17 +44,15 @@ function pagination(totalPosts) {
 
 // Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
-    let updatedMax = lastPostDate || new Date().toISOString().replace(".000", "").replace("Z", "-05:00");
+    let updatedMaxParam = pageNum > 1 ? `&updated-max=${encodeURIComponent(lastPostDate)}` : "";
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let startIndex = (pageNum - 1) * itemsPerPage;
     let url;
 
     if (type === "page") {
-        url = `https://www.yeifer.com/search?${searchParam}` +
-              (pageNum > 1 ? `&updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
+        url = `https://www.yeifer.com/search?${searchParam}${updatedMaxParam}&max-results=${itemsPerPage}&start-index=${startIndex}&by-date=false`;
     } else {
-        url = `https://www.yeifer.com/search/label/${lblname1}` +
-              (pageNum > 1 ? `?updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
+        url = `https://www.yeifer.com/search/label/${lblname1}${updatedMaxParam}&max-results=${itemsPerPage}&start-index=${startIndex}&by-date=false`;
     }
 
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
@@ -67,6 +65,8 @@ function paginationall(data) {
     // Obtener la fecha del último post de la página actual
     if (data.feed.entry && data.feed.entry.length > 0) {
         lastPostDate = data.feed.entry[data.feed.entry.length - 1].updated.$t;
+    } else if (!lastPostDate) {
+        lastPostDate = new Date().toISOString().replace(".000", "").replace("Z", "-05:00");
     }
 
     pagination(totalResults);
@@ -87,8 +87,8 @@ function bloggerpage() {
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
     
     let scriptUrl = type === "page"
-        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
+        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start-index=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=${itemsPerPage}&start-index=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
