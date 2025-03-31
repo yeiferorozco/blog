@@ -1,5 +1,22 @@
+// Extra la fecha del último post y redirige con la fecha actualizada
+function finddatepost(data) {
+    if (!data.feed.entry || data.feed.entry.length === 0) return;
+
+    let post = data.feed.entry[0];
+    let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
+    let encodedDate = encodeURIComponent(dateStr);
+
+    let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
+
+    let redirectUrl = type === "page"
+        ? `/search?${searchParam ? searchParam + "&" : ""}updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+
+    location.href = redirectUrl;
+}
+
 // Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery, lastPostDate;
+var nopage, type, currentPage, lblname1, searchQuery;
 
 // Función para obtener el término de búsqueda del usuario
 function getSearchQuery() {
@@ -46,27 +63,25 @@ function pagination(totalPosts) {
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con la fecha del último post de la página actual
+// Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
-    let updatedMax = lastPostDate || getUpdatedMax();
+    let updatedMax = getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let url = type === "page"
-        ? `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
+        ? `/search?${searchParam ? searchParam + "&" : ""}updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
         : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post mostrado en la página actual
+// Obtiene la fecha del último post en formato correcto
 function getUpdatedMax() {
-    return encodeURIComponent(new Date().toISOString().replace(".000", "").replace("Z", "-05:00"));
+    let date = new Date();
+    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
-// Procesa los datos de Blogger para obtener la fecha del último post
+// Procesa los datos de Blogger
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-    if (data.feed.entry && data.feed.entry.length > 0) {
-        lastPostDate = encodeURIComponent(data.feed.entry[data.feed.entry.length - 1].published.$t);
-    }
     pagination(totalResults);
 }
 
@@ -84,12 +99,25 @@ function bloggerpage() {
 
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
     let scriptUrl = type === "page"
-        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}`;
+        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
     document.body.appendChild(script);
+}
+
+// Redirigir a una página específica con fecha actualizada
+function redirectpage(pageNum) {
+    let updatedMax = getUpdatedMax();
+    let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
+    location.href = `/search?${searchParam ? searchParam + "&" : ""}updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
+}
+
+// Redirigir a una etiqueta específica con fecha actualizada
+function redirectlabel(pageNum) {
+    let updatedMax = getUpdatedMax();
+    location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Inicialización
