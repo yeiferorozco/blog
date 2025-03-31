@@ -1,5 +1,5 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery, lastPostDate;
+var nopage, type, currentPage, lblname1, searchQuery, lastPostDate = "";
 
 // Función para obtener el término de búsqueda del usuario
 function getSearchQuery() {
@@ -59,14 +59,15 @@ function createPageLink(pageNum, linkText, type) {
 // Obtiene la fecha del último post de la página actual
 function getLastPostDate(data) {
     if (data.feed.entry && data.feed.entry.length > 0) {
-        lastPostDate = data.feed.entry[data.feed.entry.length - 1].published.$t; // Último post en la lista
+        let lastEntry = data.feed.entry[data.feed.entry.length - 1]; // Último post en la lista
+        lastPostDate = lastEntry.published.$t;
     }
 }
 
 // Procesa los datos de Blogger
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-    getLastPostDate(data); // Obtener la fecha del último post
+    getLastPostDate(data); // Obtener la fecha del último post antes de generar la paginación
     pagination(totalResults);
 }
 
@@ -83,6 +84,13 @@ function bloggerpage() {
     }
 
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
+
+    // Extraer `updated-max` de la URL si existe para mantener la continuidad entre páginas
+    let urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("updated-max")) {
+        lastPostDate = decodeURIComponent(urlParams.get("updated-max"));
+    }
+
     let scriptUrl = type === "page"
         ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=paginationall`
         : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}`;
