@@ -46,7 +46,7 @@ function pagination(totalPosts) {
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con fecha actualizada
+// Genera enlaces de paginación con la fecha del último post de la página actual
 function createPageLink(pageNum, linkText, type) {
     let updatedMax = lastPostDate || getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
@@ -56,17 +56,16 @@ function createPageLink(pageNum, linkText, type) {
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post correctamente desde los datos del feed
+// Obtiene la fecha del último post mostrado en la página actual
 function getUpdatedMax() {
-    return lastPostDate ? encodeURIComponent(lastPostDate) : "";
+    return encodeURIComponent(new Date().toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
-// Procesa los datos de Blogger y obtiene la fecha del último post
+// Procesa los datos de Blogger para obtener la fecha del último post
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
     if (data.feed.entry && data.feed.entry.length > 0) {
-        let post = data.feed.entry[0];
-        lastPostDate = encodeURIComponent(post.published.$t.replace(".000", "").replace("Z", "-05:00"));
+        lastPostDate = encodeURIComponent(data.feed.entry[data.feed.entry.length - 1].published.$t);
     }
     pagination(totalResults);
 }
@@ -85,25 +84,12 @@ function bloggerpage() {
 
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
     let scriptUrl = type === "page"
-        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
+        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
     document.body.appendChild(script);
-}
-
-// Redirigir a una página específica con fecha actualizada
-function redirectpage(pageNum) {
-    let updatedMax = lastPostDate || getUpdatedMax();
-    let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
-    location.href = `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
-}
-
-// Redirigir a una etiqueta específica con fecha actualizada
-function redirectlabel(pageNum) {
-    let updatedMax = lastPostDate || getUpdatedMax();
-    location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Inicialización
