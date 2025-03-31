@@ -41,6 +41,7 @@ function pagination(totalPosts) {
 }
 
 function createPageLink(pageNum, linkText, type) {
+    // Usar lastPostDate si existe, de lo contrario omitir updated-max en la página 1
     let updatedMax = lastPostDate || (pageNum === 1 ? null : new Date().toISOString().replace(".000", "").replace("Z", "-05:00"));
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let startIndex = (pageNum - 1) * itemsPerPage;
@@ -60,9 +61,11 @@ function createPageLink(pageNum, linkText, type) {
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
     
+    // Actualizar lastPostDate solo si hay entradas en el feed
     if (data.feed.entry && data.feed.entry.length > 0) {
         lastPostDate = data.feed.entry[data.feed.entry.length - 1].updated.$t;
     } else if (!lastPostDate) {
+        // Si no hay entradas y lastPostDate no está definido, usar fecha actual como fallback
         lastPostDate = new Date().toISOString().replace(".000", "").replace("Z", "-05:00");
     }
 
@@ -80,19 +83,11 @@ function bloggerpage() {
         type = "page";
     }
 
-    // Obtener currentPage de los parámetros de la URL o default a 1
-    let urlParams = new URLSearchParams(window.location.search);
-    currentPage = urlParams.get("start") ? Math.floor(parseInt(urlParams.get("start")) / itemsPerPage) + 1 : 1;
-
-    let scriptUrl;
-    if (type === "page" && searchQuery) {
-        // Para búsquedas, incluir el término de búsqueda en el feed
-        scriptUrl = `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&q=${encodeURIComponent(searchQuery)}&alt=json-in-script&callback=paginationall`;
-    } else if (type === "page") {
-        scriptUrl = `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
-    } else {
-        scriptUrl = `${home_page}feeds/posts/summary/-/${lblname1}?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
-    }
+    currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
+    
+    let scriptUrl = type === "page"
+        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
