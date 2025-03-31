@@ -48,25 +48,18 @@ function pagination(totalPosts) {
 
 // Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
+    let updatedMax = getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
-    let updatedMax = "";
-    if (lastPostDate) {
-        updatedMax = encodeURIComponent(lastPostDate);
-    }
     let url = type === "page"
         ? `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
         : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post
-var lastPostDate = "";
-function finddatepost(data) {
-    if (data.feed.entry && data.feed.entry.length > 0) {
-        let post = data.feed.entry[0];
-        lastPostDate = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
-    }
-    paginationall(data);
+// Obtiene la fecha del último post en formato correcto
+function getUpdatedMax() {
+    let date = new Date();
+    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
 }
 
 // Procesa los datos de Blogger
@@ -78,8 +71,8 @@ function paginationall(data) {
 // Determina el tipo de página y carga información
 function bloggerpage() {
     let activePage = window.location.href;
-    searchQuery = getSearchQuery();
-    
+    searchQuery = getSearchQuery(); // Obtiene la consulta de búsqueda del usuario
+
     if (activePage.includes("/search/label/")) {
         lblname1 = activePage.split("/search/label/")[1].split("?")[0];
         type = "label";
@@ -89,8 +82,8 @@ function bloggerpage() {
 
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
     let scriptUrl = type === "page"
-        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=finddatepost`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=finddatepost&max-results=1`;
+        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
@@ -99,14 +92,14 @@ function bloggerpage() {
 
 // Redirigir a una página específica con fecha actualizada
 function redirectpage(pageNum) {
+    let updatedMax = getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
-    let updatedMax = lastPostDate ? encodeURIComponent(lastPostDate) : "";
     location.href = `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Redirigir a una etiqueta específica con fecha actualizada
 function redirectlabel(pageNum) {
-    let updatedMax = lastPostDate ? encodeURIComponent(lastPostDate) : "";
+    let updatedMax = getUpdatedMax();
     location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
