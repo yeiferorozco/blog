@@ -1,74 +1,90 @@
-// Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery;
+// Configuración de paginación
 const itemsPerPage = 12;
+let currentPage = 1;
+let type = "page";
+let lblname1 = "";
+let home_page = window.location.origin + "/";
+let jsonstart = 0;
+let nopage = 1;
 
-// Función principal de paginación
+// Función para generar la paginación
 function pagination(totalPosts) {
+    let pagesToShow = 5;
     let paginationHTML = "";
     let leftnum = Math.floor(pagesToShow / 2);
     let maximum = Math.ceil(totalPosts / itemsPerPage);
     let start = Math.max(currentPage - leftnum, 1);
     let end = Math.min(start + pagesToShow - 1, maximum);
-
+    
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
-    if (currentPage > 1) paginationHTML += createPageLink(currentPage - 1, "Anterior");
-    if (start > 1) paginationHTML += createPageLink(1, "1");
+
+    if (currentPage > 1) paginationHTML += createPageLink(currentPage - 1, "«", type);
+    if (start > 1) paginationHTML += createPageLink(1, "1", type);
     if (start > 2) paginationHTML += "...";
     
     for (let r = start; r <= end; r++) {
-        paginationHTML += r === currentPage ? `<span class="pagenumber current">${r}</span>` : createPageLink(r, r);
+        paginationHTML += (r === currentPage) 
+            ? `<span class='pagenumber current'>${r}</span>` 
+            : createPageLink(r, r, type);
     }
     
     if (end < maximum - 1) paginationHTML += "...";
-    if (end < maximum) paginationHTML += createPageLink(maximum, maximum);
-    if (currentPage < maximum) paginationHTML += createPageLink(currentPage + 1, "Siguiente");
+    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
+    if (currentPage < maximum) paginationHTML += createPageLink(currentPage + 1, "»", type);
     
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con fecha actualizada
-function createPageLink(pageNum, linkText) {
-    let updatedMax = getUpdatedMax();
-    let url = type === "page" 
-        ? `/search?q=${encodeURIComponent(searchQuery)}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
-        : `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
-    return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
+// Función para generar enlaces de página con fecha de actualización
+function createPageLink(pageNum, text, type) {
+    jsonstart = (pageNum - 1) * itemsPerPage;
+    nopage = pageNum;
+    let script = document.createElement("script");
+    script.src = type === "page" 
+        ? `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+    document.head.appendChild(script);
+    return `<span class='pagenumber'><a href='#' onclick='return false;'>${text}</a></span>`;
 }
 
-// Obtiene la fecha del último post en formato correcto
-function getUpdatedMax() {
-    let date = new Date();
-    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
-}
-
-// Procesa los datos de Blogger
+// Manejo de datos de paginación
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
     pagination(totalResults);
 }
 
-// Determina el tipo de página y carga información
+// Identificación del tipo de página
 function bloggerpage() {
     let activePage = window.location.href;
-    let urlParams = new URLSearchParams(window.location.search);
-    searchQuery = urlParams.get("q") || "";
     
     if (activePage.includes("/search/label/")) {
-        lblname1 = activePage.split("/search/label/")[1].split("?")[0];
+        let match = activePage.match(/\/search\/label\/([^?&]+)/);
+        lblname1 = match ? match[1] : "";
         type = "label";
-    } else {
-        type = "page";
     }
     
-    currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
-    let scriptUrl = type === "page" 
-        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
+    let pageMatch = activePage.match(/#PageNo=(\d+)/);
+    currentPage = pageMatch ? parseInt(pageMatch[1], 10) : 1;
     
     let script = document.createElement("script");
-    script.src = scriptUrl;
-    document.body.appendChild(script);
+    script.src = type === "page" 
+        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=1&alt=json-in-script&callback=paginationall`;
+    document.head.appendChild(script);
 }
 
-// Inicialización
+// Función para obtener la fecha del último post y redirigir correctamente
+function finddatepost(data) {
+    let post = data.feed.entry[0];
+    let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
+    let encodedDate = encodeURIComponent(dateStr);
+
+    let redirectUrl = type === "page"
+        ? `${home_page}search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+        : `${home_page}search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+
+    location.href = redirectUrl;
+}
+
+// Iniciar paginación
 document.addEventListener("DOMContentLoaded", bloggerpage);
