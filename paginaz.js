@@ -1,5 +1,5 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery;
+var nopage, type, currentPage, lblname1, searchQuery, lastPostDate;
 
 // Función para obtener el término de búsqueda del usuario
 function getSearchQuery() {
@@ -48,7 +48,7 @@ function pagination(totalPosts) {
 
 // Genera enlaces de paginación con fecha actualizada
 function createPageLink(pageNum, linkText, type) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = lastPostDate || getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let url = type === "page"
         ? `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`
@@ -56,15 +56,18 @@ function createPageLink(pageNum, linkText, type) {
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post en formato correcto
+// Obtiene la fecha del último post correctamente desde los datos del feed
 function getUpdatedMax() {
-    let date = new Date();
-    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
+    return lastPostDate ? encodeURIComponent(lastPostDate) : "";
 }
 
-// Procesa los datos de Blogger
+// Procesa los datos de Blogger y obtiene la fecha del último post
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+    if (data.feed.entry && data.feed.entry.length > 0) {
+        let post = data.feed.entry[0];
+        lastPostDate = encodeURIComponent(post.published.$t.replace(".000", "").replace("Z", "-05:00"));
+    }
     pagination(totalResults);
 }
 
@@ -92,14 +95,14 @@ function bloggerpage() {
 
 // Redirigir a una página específica con fecha actualizada
 function redirectpage(pageNum) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = lastPostDate || getUpdatedMax();
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     location.href = `/search?${searchParam}&updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
 // Redirigir a una etiqueta específica con fecha actualizada
 function redirectlabel(pageNum) {
-    let updatedMax = getUpdatedMax();
+    let updatedMax = lastPostDate || getUpdatedMax();
     location.href = `/search/label/${lblname1}?updated-max=${updatedMax}&max-results=${itemsPerPage}#PageNo=${pageNum}`;
 }
 
