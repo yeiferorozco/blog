@@ -1,8 +1,8 @@
 // Parámetros globales
-var nopage, type, currentPage, lblname1, searchQuery, lastUpdatedMax;
+var type, currentPage, lblname1, searchQuery, lastUpdatedMax = "";
 
 // Función principal de paginación
-function pagination(totalPosts) {
+function pagination(totalPosts, lastPostDate) {
     let paginationHTML = "";
     let leftnum = Math.floor(pagesToShow / 2);
     
@@ -17,32 +17,34 @@ function pagination(totalPosts) {
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
     
     if (currentPage > 1) {
-        paginationHTML += createPageLink(currentPage - 1, "Anterior", type);
+        paginationHTML += createPageLink(currentPage - 1, "Anterior", type, lastPostDate);
     }
     
     if (start > 1) {
-        paginationHTML += createPageLink(1, "1", type);
+        paginationHTML += createPageLink(1, "1", type, lastPostDate);
     }
     
     if (start > 2) paginationHTML += "...";
     
     for (let r = start; r <= end; r++) {
-        paginationHTML += r === currentPage ? `<span class="pagenumber current">${r}</span>` : createPageLink(r, r, type);
+        paginationHTML += r === currentPage 
+            ? `<span class="pagenumber current">${r}</span>` 
+            : createPageLink(r, r, type, lastPostDate);
     }
     
     if (end < maximum - 1) paginationHTML += "...";
-    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
+    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type, lastPostDate);
     
     if (currentPage < maximum) {
-        paginationHTML += createPageLink(currentPage + 1, "Siguiente", type);
+        paginationHTML += createPageLink(currentPage + 1, "Siguiente", type, lastPostDate);
     }
     
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-// Genera enlaces de paginación con fecha actualizada
-function createPageLink(pageNum, linkText, type) {
-    let updatedMax = getUpdatedMax(pageNum);
+// Genera enlaces de paginación con updated-max basado en el último post
+function createPageLink(pageNum, linkText, type, lastPostDate) {
+    let updatedMax = lastPostDate ? encodeURIComponent(lastPostDate) : "";
     let url;
     
     if (type === "page") {
@@ -54,18 +56,16 @@ function createPageLink(pageNum, linkText, type) {
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
-// Obtiene la fecha del último post en formato correcto y resta 10 minutos para la siguiente página
-function getUpdatedMax(pageNum) {
-    let date = new Date(lastUpdatedMax);
-    date.setMinutes(date.getMinutes() - (pageNum - 1) * 10);
-    return encodeURIComponent(date.toISOString().replace(".000", "").replace("Z", "-05:00"));
-}
-
-// Procesa los datos de Blogger y guarda la fecha del último post
+// Procesa los datos de Blogger y obtiene la fecha del último post
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-    lastUpdatedMax = data.feed.entry[0].published.$t; // Última fecha de post en la página
-    pagination(totalResults);
+    
+    // Obtener la fecha del último post en la página actual
+    if (data.feed.entry && data.feed.entry.length > 0) {
+        lastUpdatedMax = data.feed.entry[data.feed.entry.length - 1].published.$t;
+    }
+    
+    pagination(totalResults, lastUpdatedMax);
 }
 
 // Determina el tipo de página y carga información
@@ -85,9 +85,10 @@ function bloggerpage() {
     }
     
     currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.split("#PageNo=")[1]) : 1;
+    
     let scriptUrl = type === "page" 
-        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
+        ? `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&alt=json-in-script&callback=paginationall`
+        : `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=${itemsPerPage}`;
     
     let script = document.createElement("script");
     script.src = scriptUrl;
