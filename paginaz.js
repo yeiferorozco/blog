@@ -50,13 +50,9 @@ function createPageLink(pageNum, linkText) {
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
 }
 
+// Función para manejar la paginación de todas las entradas
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
-    if (data.feed.entry && data.feed.entry.length > 0) {
-        lastPostDate = data.feed.entry[data.feed.entry.length - 1].updated.$t;
-    } else if (!lastPostDate) {
-        lastPostDate = new Date().toISOString();
-    }
     pagination(totalResults);
 }
 
