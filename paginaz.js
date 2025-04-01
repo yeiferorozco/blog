@@ -115,3 +115,14 @@ let scriptUrl = type === "search"
 }
 
 document.addEventListener("DOMContentLoaded", bloggerpage);
+
+// Etiquetas LB página
+document.addEventListener("DOMContentLoaded", function () {
+    let labelLinks = document.querySelectorAll('a[href*="/search/label/"]');
+
+    labelLinks.forEach(function (link) {
+        if (!link.href.includes("?&max-results=")) {
+            link.href += "?&max-results=12";
+        }
+    });
+});
