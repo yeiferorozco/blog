@@ -1,5 +1,5 @@
-// Parámetros globales
-var currentPage, searchQuery, itemsPerPage = 12, lastPostDate = null, type, lblname1, nopage;
+// Parámetros globales (estas variables se definirán en la plantilla)
+var currentPage, searchQuery, lastPostDate = null, type, lblname1, nopage;
 
 // Obtener el parámetro de búsqueda
 function getSearchQuery() {
@@ -10,15 +10,14 @@ function getSearchQuery() {
 // Función principal de paginación
 function pagination(totalPosts) {
     let paginationHTML = "";
-    let pagesToShow = 5;
-    let leftnum = Math.floor(pagesToShow / 2);
-    let maximum = Math.ceil(totalPosts / itemsPerPage);
+    let leftnum = Math.floor(pagesToShow / 2); // pagesToShow viene de la plantilla
+    let maximum = Math.ceil(totalPosts / itemsPerPage); // itemsPerPage viene de la plantilla
 
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
 
     // Enlace a la página anterior
     if (currentPage > 1) {
-        paginationHTML += createPageLink(currentPage - 1, "Anterior");
+        paginationHTML += createPageLink(currentPage - 1, prevpage); // prevpage viene de la plantilla
     }
 
     // Calcular rango de páginas
@@ -41,7 +40,7 @@ function pagination(totalPosts) {
 
     // Enlace a la siguiente página
     if (currentPage < maximum) {
-        paginationHTML += createPageLink(currentPage + 1, "Siguiente");
+        paginationHTML += createPageLink(currentPage + 1, nextpage); // nextpage viene de la plantilla
     }
 
     // Actualizar el área de paginación
@@ -82,7 +81,7 @@ function paginationall(data) {
 // Redirigir a página
 function redirectpage(pageNum) {
     if (pageNum === 1) {
-        location.href = home_page; // Redirige a la página de inicio
+        location.href = home_page; // home_page viene de la plantilla
         return;
     }
 
@@ -98,7 +97,6 @@ function redirectpage(pageNum) {
 // Redirigir a etiqueta
 function redirectlabel(pageNum) {
     if (pageNum === 1) {
-        // Para página 1 de etiquetas, redirige directamente sin updated-max
         location.href = `${window.location.origin}/search/label/${lblname1}?max-results=${itemsPerPage}#PageNo=1`;
         return;
     }
@@ -128,7 +126,7 @@ function finddatepost(data) {
 // Determinar tipo de página y cargar datos
 function bloggerpage() {
     searchQuery = getSearchQuery();
-    let activePage = window.location.href;
+    let activePage = urlactivepage; // urlactivepage viene de la plantilla
 
     if (activePage.includes("/search/label/")) {
         type = "label";
@@ -165,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let labelLinks = document.querySelectorAll('a[href*="/search/label/"]');
     labelLinks.forEach(function (link) {
         if (!link.href.includes("?&max-results=")) {
-            link.href += "?&max-results=12";
+            link.href += `?&max-results=${itemsPerPage}`;
         }
     });
 });
