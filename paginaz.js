@@ -105,9 +105,9 @@ function bloggerpage() {
         ? parseInt(activePage.split("#PageNo=")[1]) 
         : 1;
 
-    let scriptUrl = type === "search"
-        ? `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`
-        : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=1&alt=json-in-script&callback=paginationall`;
+let scriptUrl = type === "search"
+    ? `${home_page}feeds/posts/summary?max-results=9999&alt=json-in-script&callback=paginationall`
+    : `${home_page}feeds/posts/summary/-/${lblname1}?max-results=9999&alt=json-in-script&callback=paginationall`;
 
     let script = document.createElement("script");
     script.src = scriptUrl;
