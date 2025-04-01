@@ -40,14 +40,21 @@ function pagination(totalPosts) {
     document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
-function createPageLink(pageNum, linkText) {
-    let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
-    let labelParam = lblname1 ? `search/label/${lblname1}` : "search";
-    let startIndex = (pageNum - 1) * itemsPerPage;
-    let url = `${home_page}/${labelParam}?${searchParam}` +
-              `&updated-max=${encodeURIComponent(lastPostDate || new Date().toISOString())}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false#PageNo=${pageNum}`;
-
-    return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
+function createPageLink(pageNum, linkText, type) {
+    if (type === "page") {
+        return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
+    } else if (type === "label") {
+        return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
+    } else {
+        let updatedMax = lastPostDate || (pageNum === 1 ? null : new Date().toISOString().replace(".000", "").replace("Z", "-05:00"));
+        let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
+        let startIndex = (pageNum - 1) * itemsPerPage;
+        let baseUrl = `${window.location.origin}/search?`;
+        let url = `${baseUrl}${searchParam}` +
+                  (pageNum > 1 && updatedMax ? `&updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
+        
+        return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
+    }
 }
 
 function paginationall(data) {
