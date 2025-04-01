@@ -8,38 +8,70 @@ function getSearchQuery() {
 
 function pagination(totalPosts) {
     let paginationHTML = "";
-    let pagesToShow = 5;
     let leftnum = Math.floor(pagesToShow / 2);
-    let maximum = Math.ceil(totalPosts / itemsPerPage);
+
+    // Ajuste de pagesToShow si es necesario
+    if (leftnum === pagesToShow - leftnum) {
+        pagesToShow = 2 * leftnum + 1;
+    }
+
+    // Calcular el rango de páginas
+    let start = currentPage - leftnum;
+    start = Math.max(start, 1); // Garantiza que el inicio no sea menor que 1
+
+    let maximum = Math.floor(totalPosts / itemsPerPage) + 1;
+    if (maximum * itemsPerPage === totalPosts) {
+        maximum -= 1;
+    }
+
+    let end = start + pagesToShow - 1;
+    end = Math.min(end, maximum); // Garantiza que el final no sea mayor que el máximo
 
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
 
-    if (currentPage > 1) {
-        paginationHTML += createPageLink(currentPage - 1, "Anterior");
+    // Enlace a la página anterior
+    let previousPage = currentPage > 1 ? createPageLink(currentPage - 1, prevpage, type) : "";
+    paginationHTML += previousPage;
+
+    // Enlace a la página 1
+    if (start > 1) {
+        paginationHTML += type === "page"
+            ? `<span class="pagenumber"><a href="${home_page}">1</a></span>`
+            : `<span class="pagenumber"><a href="/search/label/${lblname1}?&max-results=${itemsPerPage}">1</a></span>`;
     }
 
-    let start = Math.max(currentPage - leftnum, 1);
-    let end = Math.min(start + pagesToShow - 1, maximum);
-
-    if (start > 1) paginationHTML += createPageLink(1, "1");
     if (start > 2) paginationHTML += "...";
 
-    for (let r = start; r <= end; r++) {
-        paginationHTML += r === currentPage 
-            ? `<span class="pagenumber current">${r}</span>` 
-            : createPageLink(r, r);
+    // Generar las páginas intermedias
+for (let r = start; r <= end; r++) {
+    if (r === parseInt(currentPage, 10)) {
+        paginationHTML += `<span class="pagenumber current">${r}</span>`;
+    } else {
+        paginationHTML += createPageLink(r, r, type);
     }
-
-    if (end < maximum - 1) paginationHTML += "...";
-    if (end < maximum) paginationHTML += createPageLink(maximum, maximum);
-
-    if (currentPage < maximum) {
-        paginationHTML += createPageLink(currentPage + 1, "Siguiente");
-    }
-
-    document.getElementById("blog-pager").innerHTML = paginationHTML;
 }
 
+    if (end < maximum - 1) paginationHTML += "...";
+
+    // Enlace para la última página
+    if (end < maximum) paginationHTML += createPageLink(maximum, maximum, type);
+
+    // Enlace a la siguiente página
+    let nextPage = currentPage < maximum ? createPageLink(currentPage + 1, nextpage, type) : "";
+    paginationHTML += nextPage;
+
+    // Actualizar el área de la página
+    let pageArea = document.getElementsByName("pageArea");
+    let pagerElement = document.getElementById("blog-pager");
+
+    for (let i = 0; i < pageArea.length; i++) {
+        pageArea[i].innerHTML = paginationHTML;
+    }
+
+    if (pagerElement) {
+        pagerElement.innerHTML = paginationHTML;
+    }
+}
 function createPageLink(pageNum, linkText) {
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let labelParam = lblname1 ? `search/label/${lblname1}` : "search";
