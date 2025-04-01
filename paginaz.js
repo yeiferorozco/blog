@@ -15,20 +15,16 @@ function pagination(totalPosts) {
 
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
 
-    // Enlace a la página anterior
     if (currentPage > 1) {
         paginationHTML += createPageLink(currentPage - 1, prevpage);
     }
 
-    // Calcular rango de páginas
     let start = Math.max(currentPage - leftnum, 1);
     let end = Math.min(start + pagesToShow - 1, maximum);
 
-    // Enlace a la página 1
     if (start > 1) paginationHTML += createPageLink(1, "1");
     if (start > 2) paginationHTML += "...";
 
-    // Generar páginas intermedias
     for (let r = start; r <= end; r++) {
         paginationHTML += r === currentPage 
             ? `<span class="pagenumber current">${r}</span>` 
@@ -38,12 +34,10 @@ function pagination(totalPosts) {
     if (end < maximum - 1) paginationHTML += "...";
     if (end < maximum) paginationHTML += createPageLink(maximum, maximum);
 
-    // Enlace a la siguiente página
     if (currentPage < maximum) {
         paginationHTML += createPageLink(currentPage + 1, nextpage);
     }
 
-    // Actualizar el área de paginación
     let pageArea = document.getElementsByName("pageArea");
     let pagerElement = document.getElementById("blog-pager");
 
@@ -70,6 +64,9 @@ function createPageLink(pageNum, linkText) {
 // Manejar la paginación del feed
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+    if (isNaN(totalResults) || totalResults <= 0) {
+        totalResults = itemsPerPage; // Fallback si no hay resultados válidos
+    }
     if (data.feed.entry && data.feed.entry.length > 0) {
         lastPostDate = data.feed.entry[data.feed.entry.length - 1].updated.$t;
     } else if (!lastPostDate) {
@@ -143,9 +140,9 @@ function bloggerpage() {
 
     let scriptUrl;
     if (type === "search") {
-        // Incluir el término de búsqueda en el feed
-        let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}&` : "";
-        scriptUrl = `${home_page}feeds/posts/summary?${searchParam}max-results=1&alt=json-in-script&callback=paginationall`;
+        // Usar el feed con el parámetro de búsqueda correctamente
+        let searchParam = searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : "";
+        scriptUrl = `${home_page}feeds/posts/summary${searchParam}&max-results=150&alt=json-in-script&callback=paginationall`;
     } else if (type === "label") {
         scriptUrl = `${home_page}feeds/posts/summary/-/${lblname1}?max-results=1&alt=json-in-script&callback=paginationall`;
     } else { // type === "page"
