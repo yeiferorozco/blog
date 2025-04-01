@@ -97,6 +97,12 @@ function redirectpage(pageNum) {
 
 // Redirigir a etiqueta
 function redirectlabel(pageNum) {
+    if (pageNum === 1) {
+        // Para página 1 de etiquetas, redirige directamente sin updated-max
+        location.href = `${window.location.origin}/search/label/${lblname1}?max-results=${itemsPerPage}#PageNo=1`;
+        return;
+    }
+
     jsonstart = (pageNum - 1) * itemsPerPage;
     nopage = pageNum;
 
