@@ -44,13 +44,13 @@ function pagination(totalPosts) {
     if (start > 2) paginationHTML += "...";
 
     // Generar las páginas intermedias
-for (let r = start; r <= end; r++) {
-    if (r === parseInt(currentPage, 10)) {
-        paginationHTML += `<span class="pagenumber current">${r}</span>`;
-    } else {
-        paginationHTML += createPageLink(r, r, type);
+    for (let r = start; r <= end; r++) {
+        if (r === parseInt(currentPage, 10)) {
+            paginationHTML += `<span class="pagenumber current">${r}</span>`;
+        } else {
+            paginationHTML += createPageLink(r, r, type);
+        }
     }
-}
 
     if (end < maximum - 1) paginationHTML += "...";
 
