@@ -1,3 +1,11 @@
+// Parámetros globales
+var searchQuery, lastPostDate = null;
+
+function getSearchQuery() {
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("q") || "";
+}
+
 // Función principal de paginación
 function pagination(totalPosts) {
     let paginationHTML = "";
@@ -70,14 +78,30 @@ for (let r = start; r <= end; r++) {
 function createPageLink(pageNum, linkText, type) {
     if (type === "page") {
         return `<span class="pagenumber"><a href="#" onclick="redirectpage(${pageNum}); return false;">${linkText}</a></span>`;
-    } else {
+    } else if (type === "label") {
         return `<span class="pagenumber"><a href="#" onclick="redirectlabel(${pageNum}); return false;">${linkText}</a></span>`;
+    } else {
+        let updatedMax = lastPostDate || (pageNum === 1 ? null : new Date().toISOString().replace(".000", "").replace("Z", "-05:00"));
+        let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
+        let startIndex = (pageNum - 1) * itemsPerPage;
+        let baseUrl = `${window.location.origin}/search?`;
+        let url = `${baseUrl}${searchParam}` +
+                  (pageNum > 1 && updatedMax ? `&updated-max=${encodeURIComponent(updatedMax)}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false` : "");
+        
+        return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
     }
 }
 
 // Función para manejar la paginación de todas las entradas
 function paginationall(data) {
     let totalResults = parseInt(data.feed.openSearch$totalResults.$t, 10);
+    
+    if (data.feed.entry && data.feed.entry.length > 0) {
+        lastPostDate = data.feed.entry[data.feed.entry.length - 1].updated.$t;
+    } else if (!lastPostDate) {
+        lastPostDate = new Date().toISOString().replace(".000", "").replace("Z", "-05:00");
+    }
+
     pagination(totalResults);
 }
 
