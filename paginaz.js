@@ -1,5 +1,5 @@
 // Parámetros globales
-var searchQuery, lastPostDate = null;
+var searchQuery, var itemsPerPage = 12; lastPostDate = null;
 
 function getSearchQuery() {
     let urlParams = new URLSearchParams(window.location.search);
