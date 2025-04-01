@@ -88,27 +88,93 @@ function paginationall(data) {
     pagination(totalResults);
 }
 
+// Función para determinar el tipo de página y cargar la información
 function bloggerpage() {
-    let activePage = window.location.href;
+    let activePage = urlactivepage;
+    
+    if (activePage.indexOf("/search/label/") !== -1) {
+        lblname1 = activePage.includes("?updated-max") 
+            ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
+            : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
+    }
 
-    // Si estamos en la portada, ajustamos la URL de la solicitud para obtener todas las publicaciones
     if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
-        currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) : 1;
+        currentPage = activePage.includes("#PageNo=") 
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
-        // Aseguramos de que estamos obteniendo el total de publicaciones y no solo una
-        document.write(`<script src="${home_page}feeds/posts/summary?max-results=9999&alt=json-in-script&callback=paginationall"></script>`);
+        document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
     } else {
-        // Si no estamos en la portada, tratamos como una búsqueda o etiqueta
         type = "label";
         if (!activePage.includes("&max-results=")) {
             itemsPerPage = 12;
         }
-        currentPage = activePage.includes("#PageNo=") ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) : 1;
+        currentPage = activePage.includes("#PageNo=") 
+    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
+    : 1;
 
-        // Petición para obtener las entradas de la etiqueta
-        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=9999"></script>`);
+        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
     }
 }
+
+// Función para redirigir a la página seleccionada
+function redirectpage(pageNum) {
+    // Si la página es 1, redirige directamente a la página de inicio
+    if (pageNum === 1) {
+        location.href = home_page; // Redirige a la página de inicio
+        return;
+    }
+
+    // Para otras páginas, calcula el inicio y redirige
+    jsonstart = (pageNum - 1) * itemsPerPage;
+    nopage = pageNum;
+
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = `${home_page}feeds/posts/summary?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+
+    document.getElementsByTagName("head")[0].appendChild(script);
+}
+
+// Función para redirigir a una etiqueta
+function redirectlabel(pageNum) {
+    jsonstart = (pageNum - 1) * itemsPerPage;
+    nopage = pageNum;
+
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = `${home_page}feeds/posts/summary/-/${lblname1}?start-index=${jsonstart}&max-results=1&alt=json-in-script&callback=finddatepost`;
+
+    document.getElementsByTagName("head")[0].appendChild(script);
+}
+
+// Función para manejar la redirección con fecha
+function finddatepost(data) {
+    let post = data.feed.entry[0];
+    let dateStr = post.published.$t.substring(0, 19) + post.published.$t.substring(23, 29);
+    let encodedDate = encodeURIComponent(dateStr);
+
+    let redirectUrl = type === "page"
+        ? `/search?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`
+        : `/search/label/${lblname1}?updated-max=${encodedDate}&max-results=${itemsPerPage}#PageNo=${nopage}`;
+
+    location.href = redirectUrl;
+}
+
+// Inicialización de la página
+var nopage, type, currentPage, lblname1;
+bloggerpage();
+
+// Etiquetas LB página
+document.addEventListener("DOMContentLoaded", function () {
+    let labelLinks = document.querySelectorAll('a[href*="/search/label/"]');
+
+    labelLinks.forEach(function (link) {
+        if (!link.href.includes("?&max-results=")) {
+            link.href += "?&max-results=12";
+        }
+    });
+});
 
 document.addEventListener("DOMContentLoaded", bloggerpage);
