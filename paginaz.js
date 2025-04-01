@@ -44,7 +44,7 @@ function createPageLink(pageNum, linkText) {
     let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
     let labelParam = lblname1 ? `search/label/${lblname1}` : "search";
     let startIndex = (pageNum - 1) * itemsPerPage;
-    let url = `${home_page}/${labelParam}?${searchParam}` +
+    let url = ``${window.location.origin}/${labelParam}?${searchParam}` +
               `&updated-max=${encodeURIComponent(lastPostDate || new Date().toISOString())}&max-results=${itemsPerPage}&start=${startIndex}&by-date=false#PageNo=${pageNum}`;
 
     return `<span class="pagenumber"><a href="${url}">${linkText}</a></span>`;
