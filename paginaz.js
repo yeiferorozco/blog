@@ -107,6 +107,7 @@ function paginationall(data) {
 
 // Función para determinar el tipo de página y cargar la información
 function bloggerpage() {
+    searchQuery = getSearchQuery();
     let activePage = urlactivepage;
     
     if (activePage.indexOf("/search/label/") !== -1) {
@@ -114,26 +115,28 @@ function bloggerpage() {
             ? activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?updated-max"))
             : activePage.substring(activePage.indexOf("/search/label/") + 14, activePage.indexOf("?&max"));
     }
-
+    
+    currentPage = window.location.href.includes("#PageNo=") 
+        ? parseInt(window.location.href.split("#PageNo=")[1]) 
+        : 1;
+    
+    let scriptUrl;
     if (!activePage.includes("?q=") && !activePage.includes(".html") && activePage.indexOf("/search/label/") === -1) {
         type = "page";
-        currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
-
-        document.write(`<script src="${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall"></script>`);
+        scriptUrl = `${home_page}feeds/posts/summary?max-results=${itemsPerPage}&start=${(currentPage - 1) * itemsPerPage}&alt=json-in-script&callback=paginationall`;
     } else {
         type = "label";
         if (!activePage.includes("&max-results=")) {
             itemsPerPage = 12;
         }
-        currentPage = activePage.includes("#PageNo=") 
-    ? parseInt(activePage.substring(activePage.indexOf("#PageNo=") + 8), 10) 
-    : 1;
-
-        document.write(`<script src="${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1"></script>`);
+        scriptUrl = `${home_page}feeds/posts/summary/-/${lblname1}?alt=json-in-script&callback=paginationall&max-results=1`;
     }
+    
+    let script = document.createElement("script");
+    script.src = scriptUrl;
+    document.body.appendChild(script);
 }
+
 
 // Función para redirigir a la página seleccionada
 function redirectpage(pageNum) {
