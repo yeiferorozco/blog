@@ -10,14 +10,14 @@ function getSearchQuery() {
 // Función principal de paginación
 function pagination(totalPosts) {
     let paginationHTML = "";
-    let leftnum = Math.floor(pagesToShow / 2); // pagesToShow viene de la plantilla
-    let maximum = Math.ceil(totalPosts / itemsPerPage); // itemsPerPage viene de la plantilla
+    let leftnum = Math.floor(pagesToShow / 2);
+    let maximum = Math.ceil(totalPosts / itemsPerPage);
 
     paginationHTML += `<span class='totalpages'>Hoja ${currentPage} de ${maximum}</span>`;
 
     // Enlace a la página anterior
     if (currentPage > 1) {
-        paginationHTML += createPageLink(currentPage - 1, prevpage); // prevpage viene de la plantilla
+        paginationHTML += createPageLink(currentPage - 1, prevpage);
     }
 
     // Calcular rango de páginas
@@ -40,7 +40,7 @@ function pagination(totalPosts) {
 
     // Enlace a la siguiente página
     if (currentPage < maximum) {
-        paginationHTML += createPageLink(currentPage + 1, nextpage); // nextpage viene de la plantilla
+        paginationHTML += createPageLink(currentPage + 1, nextpage);
     }
 
     // Actualizar el área de paginación
@@ -81,7 +81,7 @@ function paginationall(data) {
 // Redirigir a página
 function redirectpage(pageNum) {
     if (pageNum === 1) {
-        location.href = home_page; // home_page viene de la plantilla
+        location.href = home_page;
         return;
     }
 
@@ -126,7 +126,7 @@ function finddatepost(data) {
 // Determinar tipo de página y cargar datos
 function bloggerpage() {
     searchQuery = getSearchQuery();
-    let activePage = urlactivepage; // urlactivepage viene de la plantilla
+    let activePage = urlactivepage;
 
     if (activePage.includes("/search/label/")) {
         type = "label";
@@ -143,7 +143,9 @@ function bloggerpage() {
 
     let scriptUrl;
     if (type === "search") {
-        scriptUrl = `${home_page}feeds/posts/summary?max-results=1&alt=json-in-script&callback=paginationall`;
+        // Incluir el término de búsqueda en el feed
+        let searchParam = searchQuery ? `q=${encodeURIComponent(searchQuery)}&` : "";
+        scriptUrl = `${home_page}feeds/posts/summary?${searchParam}max-results=1&alt=json-in-script&callback=paginationall`;
     } else if (type === "label") {
         scriptUrl = `${home_page}feeds/posts/summary/-/${lblname1}?max-results=1&alt=json-in-script&callback=paginationall`;
     } else { // type === "page"
