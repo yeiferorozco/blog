@@ -191,9 +191,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-    function addMaxResults(event) {
-      event.preventDefault(); // Evitar el envío por defecto
-      var query = document.querySelector('input[name="q"]').value;
-      var searchUrl = "search?q=" + encodeURIComponent(query) + "&max-results=" + itemsPerPage;
-      window.location.href = searchUrl; // Redirigir con max-results
-    }
+function addMaxResults(event) {
+  event.preventDefault(); // Evitar el envío por defecto
+  var query = document.querySelector('input[name="q"]').value;
+  var baseUrl = (typeof searchBaseUrl !== 'undefined' ? searchBaseUrl : (home_page + 'search')); // Usar searchBaseUrl o fallback a home_page + 'search'
+  var searchUrl = baseUrl + "?q=" + encodeURIComponent(query) + "&max-results=" + itemsPerPage;
+  window.location.href = searchUrl; // Redirigir con max-results
+}
