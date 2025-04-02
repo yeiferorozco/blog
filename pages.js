@@ -194,6 +194,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function addMaxResults(event) {
       event.preventDefault(); // Evitar el envío por defecto
       var query = document.querySelector('input[name="q"]').value;
-      var searchUrl = "<data:blog.searchUrl/>?q=" + encodeURIComponent(query) + "&max-results=" + itemsPerPage;
+      var searchUrl = "${window.location.origin}?q=" + encodeURIComponent(query) + "&max-results=" + itemsPerPage;
       window.location.href = searchUrl; // Redirigir con max-results
     }
