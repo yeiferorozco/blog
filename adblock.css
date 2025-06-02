@@ -1,0 +1,112 @@
+/*
+ * CSS Detector adblock para Blogger - Creado por Yeifer Orozco
+ * Copyright © 2025 Yeifer Orozco
+ * 
+ * Licencia MIT
+ */
+
+.adblock-modal {
+  visibility: hidden;
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100vw; 
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+}
+.adblock-modal.visible {
+  visibility: visible;
+}
+.adblock-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  overflow-y: auto;
+  max-height: 90vh;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.adblock-content h2 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: #333;
+}
+.adblock-content p {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+}
+.adblock-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+.adblock-buttons img {
+  width: 80px;
+  height: 80px;
+  margin: 8px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: transform 0.2s;
+}
+.adblock-buttons img:hover {
+  transform: scale(1.1);
+}
+.instructions {
+  display: none;
+  text-align: left;
+  margin-top: 15px;
+  font-size: 0.9em;
+  color: #333;
+}
+.instructions ul {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+.instructions img.gif-tutorial {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  border-radius: 5px;
+  margin: 10px auto;
+  display: block;
+}
+.adblock-buttons-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px; /* Espacio entre botones */
+  margin-top: 20px;
+}
+#closeAdblockModal {
+  padding: 10px 15px;
+  border: none;
+  background: #28a745;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+}
+#closeAdblockModal:hover {
+  background: #218838;
+}
+#bypassAdblock {
+  padding: 10px 15px;
+  border: none;
+  background: #28a745;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+}
+#bypassAdblock:hover {
+  background: #218838;
+}
